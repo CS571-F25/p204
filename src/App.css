@@ -572,6 +572,32 @@ p {
   line-height: 1;
 }
 
+.mail-status {
+  margin-left: 0.5rem;
+  text-transform: capitalize;
+}
+
+.mail-status-pending {
+  background: rgba(88, 166, 255, 0.2);
+  color: #58a6ff;
+}
+
+.mail-status-accepted {
+  background: rgba(52, 211, 153, 0.2);
+  color: #34d399;
+}
+
+.mail-status-declined,
+.mail-status-expired {
+  background: rgba(248, 113, 113, 0.2);
+  color: #f87171;
+}
+
+.mail-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .home-hero-shell {
   padding: clamp(2rem, 6vw, 4rem);
 }

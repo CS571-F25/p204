@@ -1,9 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getRoomsByOwner, sendInvite, getInvitesForRecipient, getRoom } from "../utils/storage.js";
+import {
+  getRoomsByOwner,
+  sendInvite,
+  getInvitesForRecipient,
+  getRoom,
+  addParticipant,
+  recordRecentRoom,
+  updateInvite,
+} from "../utils/storage.js";
 
 function MailPage() {
   const { identity, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [alert, setAlert] = useState(null);
   const [form, setForm] = useState({ recipient: "", roomId: "", message: "" });
   const [ownedRooms, setOwnedRooms] = useState([]);
@@ -18,13 +28,15 @@ function MailPage() {
     }
   }, [identity, isAuthenticated]);
 
+  const recipientKey = (isAuthenticated ? identity.username : identity.displayName) ?? "";
+
   const inbox = useMemo(() => {
-    const key = isAuthenticated ? identity.username : identity.displayName;
-    return getInvitesForRecipient(key).map((invite) => ({
+    if (!recipientKey) return [];
+    return getInvitesForRecipient(recipientKey).map((invite) => ({
       ...invite,
       roomName: getRoom(invite.roomId)?.name ?? invite.roomId,
     }));
-  }, [identity, isAuthenticated, refreshStamp]);
+  }, [recipientKey, refreshStamp]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -36,6 +48,8 @@ function MailPage() {
     setAlert(null);
     setForm({ recipient: "", roomId: "", message: "" });
   };
+
+  const refreshInbox = () => setRefreshStamp(Date.now());
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -52,9 +66,34 @@ function MailPage() {
     });
     setAlert({ variant: "success", message: "Invite sent." });
     setForm((prev) => ({ ...prev, message: "" }));
-    setRefreshStamp(Date.now());
+    refreshInbox();
     setTimeout(() => setAlert(null), 2000);
     resetCompose();
+  };
+
+  const handleAccept = (invite) => {
+    const room = getRoom(invite.roomId);
+    if (!room) {
+      updateInvite(invite.id, { status: "expired", respondedAt: new Date().toISOString() });
+      setAlert({ variant: "danger", message: "This room no longer exists." });
+      refreshInbox();
+      return;
+    }
+    addParticipant(room.id, {
+      username: isAuthenticated ? identity.username : null,
+      displayName: identity.displayName,
+      role: "member",
+    });
+    recordRecentRoom(room.id);
+    updateInvite(invite.id, { status: "accepted", respondedAt: new Date().toISOString() });
+    setAlert({ variant: "success", message: `Joined ${room.name}.` });
+    refreshInbox();
+    navigate(`/room/${room.id}`);
+  };
+
+  const handleDecline = (invite) => {
+    updateInvite(invite.id, { status: "declined", respondedAt: new Date().toISOString() });
+    refreshInbox();
   };
 
   return (
@@ -82,14 +121,46 @@ function MailPage() {
             <ul className="list-unstyled mail-list mb-0">
               {inbox.map((invite) => (
                 <li key={invite.id} className="mail-item">
-                  <div className="d-flex justify-content-between">
-                    <strong>{invite.roomName}</strong>
-                    <span className="text-white small">{new Date(invite.createdAt).toLocaleString()}</span>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{invite.roomName}</strong>
+                      <span className={`badge mail-status mail-status-${invite.status}`}>
+                        {invite.status}
+                      </span>
+                    </div>
+                    <span className="text-white small">
+                      {new Date(invite.createdAt).toLocaleString()}
+                    </span>
                   </div>
                   <p className="mb-1 text-white small">
                     From {invite.sender} — Room ID: {invite.roomId}
                   </p>
-                  <p className="mb-0 text-white">{invite.message}</p>
+                  <p className="mb-2 text-white">{invite.message}</p>
+                  {invite.status === "pending" ? (
+                    <div className="mail-actions">
+                      <button
+                        type="button"
+                        className="btn btn-outline-light btn-sm"
+                        onClick={() => handleAccept(invite)}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-light btn-sm"
+                        onClick={() => handleDecline(invite)}
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  ) : (
+                    invite.respondedAt && (
+                      <p className="text-white-50 small mb-0">
+                        {invite.status === "accepted" ? "Joined" : "Responded"} on{" "}
+                        {new Date(invite.respondedAt).toLocaleString()}
+                      </p>
+                    )
+                  )}
                 </li>
               ))}
             </ul>

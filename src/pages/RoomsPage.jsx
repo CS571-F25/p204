@@ -13,6 +13,7 @@ import {
   addParticipant,
   getRecents,
   saveRoom,
+  getRoomsByParticipant,
 } from "../utils/storage.js";
 
 function RoomsPage() {
@@ -23,6 +24,7 @@ function RoomsPage() {
   const [alert, setAlert] = useState(null);
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [editName, setEditName] = useState("");
+  const [joinedRooms, setJoinedRooms] = useState([]);
 
   const refreshRooms = useCallback(() => {
     if (isAuthenticated) {
@@ -34,6 +36,14 @@ function RoomsPage() {
       .map((id) => getRoom(id))
       .filter(Boolean);
     setRecentRooms(recents);
+    const participantProfile = {
+      username: isAuthenticated ? identity.username : null,
+      displayName: identity.displayName,
+    };
+    const joined = getRoomsByParticipant(participantProfile).filter(
+      (room) => room.ownerUsername !== participantProfile.username,
+    );
+    setJoinedRooms(joined);
   }, [isAuthenticated, identity]);
 
   useEffect(() => {
@@ -214,6 +224,25 @@ function RoomsPage() {
                     <span>{room.name}</span>
                     <Link to={`/room/${room.id}`} className="btn btn-outline-light btn-sm">
                       Reopen
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <h2 className="h5 text-light mt-4">Rooms you're part of</h2>
+            {joinedRooms.length === 0 && (
+              <p className="text-muted">Join a room to see it listed here.</p>
+            )}
+            {joinedRooms.length > 0 && (
+              <ul className="list-unstyled mb-0">
+                {joinedRooms.map((room) => (
+                  <li key={`joined-${room.id}`} className="room-list-item d-flex justify-content-between">
+                    <div>
+                      <strong>{room.name}</strong>
+                      <span className="text-white-50 small ms-2">Leader: {room.ownerDisplayName}</span>
+                    </div>
+                    <Link to={`/room/${room.id}`} className="btn btn-outline-light btn-sm">
+                      Open
                     </Link>
                   </li>
                 ))}

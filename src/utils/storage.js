@@ -103,6 +103,19 @@ export function getRoomsByOwner(ownerUsername) {
   return getRooms().filter((room) => room.ownerUsername === ownerUsername);
 }
 
+export function getRoomsByParticipant({ username, displayName }) {
+  if (!username && !displayName) return [];
+  const normalizedName = (displayName ?? "").toLowerCase();
+  return getRooms().filter((room) =>
+    (room.participants ?? []).some((p) => {
+      if (username && p.username) {
+        return p.username === username;
+      }
+      return (p.displayName ?? "").toLowerCase() === normalizedName;
+    }),
+  );
+}
+
 export function saveRooms(rooms) {
   writeJSON(ROOMS_KEY, rooms);
 }
@@ -264,7 +277,9 @@ export function sendInvite({ roomId, recipient, message, sender }) {
     recipient,
     message,
     sender,
+    status: "pending",
     createdAt: new Date().toISOString(),
+    respondedAt: null,
   });
   writeJSON(INVITES_KEY, invites);
 }
@@ -275,6 +290,21 @@ export function getInvitesForRecipient(recipientKey) {
   return invites.filter(
     (invite) => invite.recipient?.toLowerCase() === recipientKey.toLowerCase(),
   );
+}
+
+export function updateInvite(inviteId, updates = {}) {
+  const invites = readJSON(INVITES_KEY, []);
+  const idx = invites.findIndex((invite) => invite.id === inviteId);
+  if (idx === -1) return null;
+  invites[idx] = { ...invites[idx], ...updates };
+  writeJSON(INVITES_KEY, invites);
+  return invites[idx];
+}
+
+export function removeInvite(inviteId) {
+  const invites = readJSON(INVITES_KEY, []);
+  const filtered = invites.filter((invite) => invite.id !== inviteId);
+  writeJSON(INVITES_KEY, filtered);
 }
 
 export function loadOlderMessages(roomId, currentCount) {

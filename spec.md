@@ -254,6 +254,7 @@ A component is a **reusable piece of UI** that:
    - Route: `/mail`
    - Purpose: Local invite hub (“mailbox”) for sending/receiving room invites
    - Contains: Invite form (recipient, room ID, optional message) plus an inbox filtered to the signed-in username or guest display name
+   - Recipients can accept (auto-join) or decline invites directly in the inbox; accepted invites log who responded and when
 
 6. **AuthPage** (`src/pages/AuthPage.jsx`)
    - Route: `/auth`
@@ -404,6 +405,7 @@ Messages saved in `localStorage` currently use a single `type` of `"message"` be
 - **Message Persistence**: Messages saved per room as chat bubbles
 - **Room List**: View all created rooms on the Rooms page
 - **Recent Rooms**: Track recently visited rooms
+- **Joined Rooms**: Rooms you participate in (but don’t own) show up in a dedicated list on the Rooms page for quick access
 - **Room Topics**: Owners can assign an optional topic via `/topic`, surfaced in the sidebar
 - **Single Terminal Focus**: One primary terminal per page; users switch rooms via commands or cards instead of multiple floating panels.
 - **Activity Indicators**: Room info card shows owner, creation time, last activity, and whether a password exists.
@@ -417,7 +419,7 @@ Messages saved in `localStorage` currently use a single `type` of `"message"` be
   - The recents list keeps the 10 most recently opened room IDs for quick access.
 - **Mail & Invites**:
   - Invites are stored in `termrooms_invites` with sender, recipient, and message metadata.
-  - MailPage surfaces invites addressed to the signed-in username (or guest display name) and offers a simple invite form.
+  - MailPage surfaces invites addressed to the signed-in username (or guest display name) and offers a simple invite form plus accept/decline controls.
 
 ---
 

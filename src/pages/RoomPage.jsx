@@ -84,8 +84,10 @@ function RoomPage() {
   }, [roomId, hydrateRoom]);
 
   useEffect(() => {
-    if (!roomId || !room) return undefined;
-    const isLeader = isAuthenticated && identity.username === room.ownerUsername;
+    if (!roomId) return undefined;
+    const snapshot = getRoom(roomId);
+    const isLeader =
+      Boolean(isAuthenticated && snapshot && identity.username === snapshot.ownerUsername);
     const participant = {
       username: isAuthenticated ? identity.username : null,
       displayName: identity.displayName,
@@ -98,7 +100,7 @@ function RoomPage() {
         displayName: participant.displayName,
       });
     };
-  }, [roomId, room, identity.username, identity.displayName, isAuthenticated]);
+  }, [roomId, identity.username, identity.displayName, isAuthenticated]);
 
   const handleSendMessage = (text) => {
     if (!room) return;
