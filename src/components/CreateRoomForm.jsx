@@ -10,38 +10,38 @@ function CreateRoomForm({ onCreate, disabled }) {
   };
 
   return (
-    <form className="form-card" onSubmit={handleSubmit}>
-      <h2 className="h4">Create a Room</h2>
-      <div className="mb-3">
-        <label htmlFor="room-name" className="form-label">
+    <form className="simple-form" onSubmit={handleSubmit}>
+      <h2 className="h5 text-light">Create a room</h2>
+      <div className="simple-field">
+        <label htmlFor="room-name" className="form-label text-light">
           Room name
         </label>
         <input
           id="room-name"
-          className="form-control bg-dark text-light border-secondary"
+          className="form-control bg-transparent text-light"
           value={name}
           onChange={(event) => setName(event.target.value)}
           required
           disabled={disabled}
         />
       </div>
-      <div className="mb-3">
-        <label htmlFor="room-password" className="form-label">
+      <div className="simple-field">
+        <label htmlFor="room-password" className="form-label text-light">
           Password (optional)
         </label>
         <input
           id="room-password"
-          className="form-control bg-dark text-light border-secondary"
+          className="form-control bg-transparent text-light"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           disabled={disabled}
         />
-        <div className="form-text text-light">
+        <small className="text-light opacity-75">
           Leave blank to create an open room anyone can join.
-        </div>
+        </small>
       </div>
-      <button className="btn btn-primary-glow w-100" type="submit" disabled={disabled}>
-        Create Room
+      <button className="btn btn-primary-glow" type="submit" disabled={disabled}>
+        Create
       </button>
     </form>
   );

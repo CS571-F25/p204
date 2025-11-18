@@ -31,6 +31,13 @@ function RoomPage() {
   const [visibleCount, setVisibleCount] = useState(50);
   const [canLoadMore, setCanLoadMore] = useState(false);
   const [participants, setParticipants] = useState([]);
+  const [inputFeedback, setInputFeedback] = useState(null);
+
+  useEffect(() => {
+    if (!inputFeedback) return undefined;
+    const timeout = setTimeout(() => setInputFeedback(null), 2000);
+    return () => clearTimeout(timeout);
+  }, [inputFeedback]);
 
   const hydrateRoom = useCallback(() => {
     const record = roomId ? getRoom(roomId) : null;
@@ -141,7 +148,8 @@ function RoomPage() {
               />
             </div>
             <div className="console-terminal">
-              <Terminal onChat={handleSendMessage} variant="embedded" />
+              <Terminal onChat={handleSendMessage} variant="embedded" onFeedback={setInputFeedback} />
+              {inputFeedback && <p className="text-success small mt-2">{inputFeedback}</p>}
             </div>
           </div>
           <aside className="room-sidebar">

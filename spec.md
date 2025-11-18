@@ -211,31 +211,31 @@ A component is a **reusable piece of UI** that:
 - Manages its own state or receives props
 - Returns JSX
 
-### **Page Components** (4 components - React Router routes)
+### **Page Components** (5 components - React Router routes)
 
 1. **HomePage** (`src/pages/HomePage.jsx`)
    - Route: `/`
-   - Purpose: Dashboard for creating/joining rooms plus quick help
-   - Contains: CreateRoomForm, JoinRoomForm, HelpPanel, status alert
+   - Purpose: Marketing-style hero with quick links and keyboard cheatsheet
+   - Contains: Product summary, CTA buttons to Rooms/Guides, inline command list
 
 2. **RoomsPage** (`src/pages/RoomsPage.jsx`)
    - Route: `/rooms`
    - Purpose: Directory of rooms the signed-in user has created
    - Contains: grid of room cards with IDs/password indicators and quick links
 
-2. **RoomPage** (`src/pages/RoomPage.jsx`)
+3. **RoomPage** (`src/pages/RoomPage.jsx`)
    - Route: `/room/:roomId`
    - Purpose: Main room interface
    - Contains: Terminal (single command input), MessageList, UserList, RoomInfoCard
    - One focused terminal drives all actions; supporting cards show metadata and participants
 
-3. **GuidePage** (`src/pages/GuidePage.jsx`)
+4. **GuidePage** (`src/pages/GuidePage.jsx`)
    - Route: `/guides`
    - Purpose: Learning hub with onboarding content, command reference, and design rationale
    - Contains: Interactive walkthrough, command glossary, accessibility checklist preview
    - Provides static content required for the "3+ pages" milestone while reinforcing the terminal metaphor
 
-4. **AuthPage** (`src/pages/AuthPage.jsx`)
+5. **AuthPage** (`src/pages/AuthPage.jsx`)
    - Route: `/auth`
    - Purpose: Manage account creation and login outside the terminal
    - Contains: descriptive hero card + `AuthForm` (single component toggles login/sign-up)
