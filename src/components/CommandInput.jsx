@@ -27,7 +27,7 @@ function CommandInput({ onSubmit }) {
       <input
         id="terminal-input"
         className="terminal-input"
-        placeholder="Type commands like /help"
+        placeholder=""
         value={value}
         onChange={(event) => setValue(event.target.value)}
         autoComplete="off"

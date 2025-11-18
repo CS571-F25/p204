@@ -154,6 +154,12 @@ export function createRoomRecord({ name, password = "", ownerUsername, ownerDisp
     ownerDisplayName,
     createdAt: now,
     lastActiveAt: now,
+    participants: [
+      {
+        username: ownerUsername,
+        displayName: ownerDisplayName,
+      },
+    ],
   };
 
   saveRoom(room);
@@ -175,6 +181,34 @@ export function touchRoom(roomId) {
   const room = getRoom(roomId);
   if (!room) return;
   room.lastActiveAt = new Date().toISOString();
+  saveRoom(room);
+}
+
+export function addParticipant(roomId, participant) {
+  const room = getRoom(roomId);
+  if (!room) return;
+  room.participants = room.participants ?? [];
+  const exists = room.participants.some((p) => {
+    if (participant.username && p.username) {
+      return p.username === participant.username;
+    }
+    return p.displayName === participant.displayName;
+  });
+  if (!exists) {
+    room.participants.push(participant);
+    saveRoom(room);
+  }
+}
+
+export function removeParticipant(roomId, username, displayName) {
+  const room = getRoom(roomId);
+  if (!room || !room.participants) return;
+  room.participants = room.participants.filter((p) => {
+    if (username && p.username) {
+      return p.username !== username;
+    }
+    return p.displayName !== displayName;
+  });
   saveRoom(room);
 }
 

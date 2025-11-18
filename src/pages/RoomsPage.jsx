@@ -10,12 +10,15 @@ import {
   getRoomsByOwner,
   recordRecentRoom,
   roomPasswordMatches,
+  addParticipant,
+  getRecents,
 } from "../utils/storage.js";
 
 function RoomsPage() {
   const navigate = useNavigate();
   const { isAuthenticated, identity } = useAuth();
   const [rooms, setRooms] = useState([]);
+  const [recentRooms, setRecentRooms] = useState([]);
   const [alert, setAlert] = useState(null);
 
   const refreshRooms = useCallback(() => {
@@ -24,6 +27,10 @@ function RoomsPage() {
     } else {
       setRooms([]);
     }
+    const recents = getRecents()
+      .map((id) => getRoom(id))
+      .filter(Boolean);
+    setRecentRooms(recents);
   }, [isAuthenticated, identity]);
 
   useEffect(() => {
@@ -66,6 +73,10 @@ function RoomsPage() {
       return;
     }
     recordRecentRoom(lookup.id);
+    addParticipant(lookup.id, {
+      username: isAuthenticated ? identity.username : null,
+      displayName: identity.displayName,
+    });
     setAlert({ variant: "success", message: `Joining "${lookup.name}".` });
     navigate(`/room/${lookup.id}`);
   };
@@ -100,11 +111,12 @@ function RoomsPage() {
 
         {isAuthenticated && (
           <div className="room-listing">
+            <h2 className="h5 text-light">Rooms you created</h2>
             {rooms.length === 0 && (
-              <p className="text-muted mb-0">No rooms yet. Create one using the form above.</p>
+              <p className="text-muted mb-3">No rooms yet. Create one using the form above.</p>
             )}
             {rooms.length > 0 && (
-              <ul className="list-unstyled mb-0">
+              <ul className="list-unstyled mb-4">
                 {rooms.map((room) => (
                   <li key={room.id} className="room-list-item d-flex flex-column flex-md-row">
                     <div className="flex-grow-1">
@@ -123,6 +135,23 @@ function RoomsPage() {
                         Delete
                       </button>
                     </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <h2 className="h5 text-light">Recently joined</h2>
+            {recentRooms.length === 0 && (
+              <p className="text-muted">Rooms you enter will show up here.</p>
+            )}
+            {recentRooms.length > 0 && (
+              <ul className="list-unstyled">
+                {recentRooms.map((room) => (
+                  <li key={`recent-${room.id}`} className="room-list-item d-flex justify-content-between">
+                    <span>{room.name}</span>
+                    <Link to={`/room/${room.id}`} className="btn btn-outline-light btn-sm">
+                      Reopen
+                    </Link>
                   </li>
                 ))}
               </ul>

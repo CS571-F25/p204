@@ -438,6 +438,8 @@ p {
   border-radius: 0.85rem;
   border: 1px solid rgba(99, 102, 241, 0.35);
   background: rgba(6, 9, 20, 0.85);
+  width: 100%;
+  margin: 0;
   padding: 0.4rem 0.85rem;
 }
 

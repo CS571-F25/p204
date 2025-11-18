@@ -14,6 +14,8 @@ import {
   saveMessages,
   touchRoom,
   loadOlderMessages,
+  addParticipant,
+  removeParticipant,
 } from "../utils/storage.js";
 
 const MESSAGE_KEY_PREFIX = "termrooms_messages_";
@@ -53,8 +55,19 @@ function RoomPage() {
     setMessages(storedMessages);
     setVisibleCount(50);
     setCanLoadMore(storedMessages.length > 50);
-    const roster = buildParticipantList(record, identity.displayName);
+    const roster = buildParticipantList(record);
     setParticipants(roster);
+  useEffect(() => {
+    if (!roomId) return undefined;
+    const participant = {
+      username: isAuthenticated ? identity.username : null,
+      displayName: identity.displayName,
+    };
+    addParticipant(roomId, participant);
+    return () => {
+      removeParticipant(roomId, participant.username, participant.displayName);
+    };
+  }, [roomId, identity.username, identity.displayName, isAuthenticated]);
     return true;
   }, [roomId, identity.displayName]);
 
@@ -159,14 +172,12 @@ function canDeleteOwner(room, identity, isAuthenticated) {
   return Boolean(room && isAuthenticated && identity.username === room.ownerUsername);
 }
 
-function buildParticipantList(room, displayName) {
+function buildParticipantList(room) {
   if (!room) return [];
-  const roster = [
-    { id: `owner-${room.ownerUsername}`, displayName: `${room.ownerDisplayName} (Owner)` },
-  ];
-  if (displayName && displayName !== room.ownerDisplayName) {
-    roster.push({ id: "self", displayName: `${displayName} (You)` });
-  }
-  return roster;
+  const people = room.participants ?? [];
+  return people.map((p, index) => ({
+    id: p.username ? `participant-${p.username}` : `participant-${index}`,
+    displayName: p.displayName + (p.username === room.ownerUsername ? " (Owner)" : ""),
+  }));
 }
 

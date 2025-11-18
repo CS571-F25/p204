@@ -63,16 +63,6 @@ function Terminal({ onChat, variant = "standalone", onFeedback }) {
           print(`Display name updated to ${newName}`, "success");
         }
         break;
-      case "msg":
-            if (!onChat) {
-              print("Messaging is not available yet.", "warning");
-            } else if (!args.length) {
-          print("Usage: /msg your message text", "warning");
-        } else {
-          onChat(args.join(" "));
-              onFeedback?.("Message sent");
-        }
-        break;
       case "leave":
         navigate("/");
         selectRoom(null);
