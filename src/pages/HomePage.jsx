@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import CreateRoomForm from "../components/CreateRoomForm.jsx";
 import JoinRoomForm from "../components/JoinRoomForm.jsx";
+import HelpPanel from "../components/HelpPanel.jsx";
 import {
   createRoomRecord,
   getRoom,
@@ -58,7 +59,7 @@ function HomePage() {
   return (
     <section className="py-5">
       <div className="container">
-        <h1>TermRooms Home</h1>
+        <h1 className="text-light">TermRooms Home</h1>
         <p className="text-muted">
           Create new rooms (if signed in) or join existing ones using the forms below. You can always
           use the terminal commands as well if you prefer the keyboard-driven experience.
@@ -72,12 +73,18 @@ function HomePage() {
 
         <div className="row g-4">
           <div className="col-12 col-lg-6">
-            <CreateRoomForm onCreate={handleCreateRoom} disabled={!isAuthenticated} />
+            <div className="glass-panel p-4">
+              <CreateRoomForm onCreate={handleCreateRoom} disabled={!isAuthenticated} />
+            </div>
           </div>
           <div className="col-12 col-lg-6">
-            <JoinRoomForm onJoin={handleJoinRoom} />
+            <div className="glass-panel p-4">
+              <JoinRoomForm onJoin={handleJoinRoom} />
+            </div>
           </div>
         </div>
+
+        <HelpPanel />
       </div>
     </section>
   );

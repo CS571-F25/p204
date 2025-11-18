@@ -83,20 +83,28 @@ function RoomPage() {
         )}
         <div className="row g-4">
           <div className="col-12 col-lg-8">
-            <MessageList
-              messages={messages.slice(-visibleCount)}
-              onLoadMore={visibleCount < messages.length ? handleLoadMore : null}
-              canLoadMore={visibleCount < messages.length}
-            />
-            <Terminal onChat={handleSendMessage} />
+            <div className="glass-panel p-4 mb-4">
+              <MessageList
+                messages={messages.slice(-visibleCount)}
+                onLoadMore={visibleCount < messages.length ? handleLoadMore : null}
+                canLoadMore={visibleCount < messages.length}
+              />
+            </div>
+            <div className="glass-panel p-4">
+              <Terminal onChat={handleSendMessage} />
+            </div>
           </div>
           <div className="col-12 col-lg-4">
-            <RoomInfoCard
-              room={room}
-              canDelete={Boolean(room && isAuthenticated && identity.username === room.ownerUsername)}
-              onDelete={handleDeleteRoom}
-            />
-            <UserList users={[]} />
+            <div className="glass-panel p-4 mb-4">
+              <RoomInfoCard
+                room={room}
+                canDelete={Boolean(room && isAuthenticated && identity.username === room.ownerUsername)}
+                onDelete={handleDeleteRoom}
+              />
+            </div>
+            <div className="glass-panel p-4">
+              <UserList users={[]} />
+            </div>
           </div>
         </div>
       </div>

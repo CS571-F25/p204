@@ -46,7 +46,7 @@
 
 ## Vision & Proposal Alignment
 
-TermRooms reimagines real-time collaboration through a terminal-inspired UI. A single command input drives every interaction—users sign up, create rooms, join rooms, and chat entirely through concise commands (`/signup`, `/create`, `/join`, `/msg`). The surrounding layout keeps things simple: the primary terminal sits beside contextual cards for room info and guides. Each room surfaces ownership metadata, optional passwords, and persistent history, while the homepage doubles as a command center with onboarding content. The experience stays minimal and fast—mirroring the original proposal—yet still meets the CS571 interactive requirements by featuring multiple pages, routed views, and meaningful components.
+TermRooms reimagines real-time collaboration through a terminal-inspired UI. A single command input drives the majority of interactions—users create rooms, join rooms, and chat entirely through concise commands such as `/create`, `/join`, and `/msg`. Account creation and login happen through the dedicated `/auth` page so the terminal can remain focused on collaboration tasks. The surrounding layout keeps things simple: the primary terminal sits beside contextual cards for room info and guides. Each room surfaces ownership metadata, optional passwords, and persistent history, while the homepage doubles as a command center with onboarding content. The experience stays minimal and fast—mirroring the original proposal—yet still meets the CS571 interactive requirements by featuring multiple pages, routed views, and meaningful components.
 
 ---
 
