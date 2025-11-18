@@ -132,19 +132,16 @@ function RoomPage() {
         </header>
         {error && <p className="text-danger">{error}</p>}
         <div className="room-layout">
-          <div className="interaction-surface glass-panel">
-            <div className="panel-heading">
-              <h2 className="h5 mb-0">Conversation & Commands</h2>
-            </div>
-            <div className="interaction-body">
+          <div className="room-console glass-panel">
+            <div className="console-log">
               <MessageList
                 messages={messages.slice(-visibleCount)}
                 onLoadMore={canLoadMore ? handleLoadMore : null}
                 canLoadMore={canLoadMore}
               />
-              <div className="command-log">
-                <Terminal onChat={handleSendMessage} variant="embedded" />
-              </div>
+            </div>
+            <div className="console-terminal">
+              <Terminal onChat={handleSendMessage} variant="embedded" />
             </div>
           </div>
           <aside className="room-sidebar glass-panel">

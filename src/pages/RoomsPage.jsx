@@ -1,14 +1,28 @@
 import { Link } from "react-router-dom";
-import { useMemo } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getRoomsByOwner } from "../utils/storage.js";
+import { deleteRoom, getRoomsByOwner } from "../utils/storage.js";
 
 function RoomsPage() {
   const { isAuthenticated, identity } = useAuth();
-  const rooms = useMemo(
-    () => (isAuthenticated ? getRoomsByOwner(identity.username) : []),
-    [isAuthenticated, identity]
-  );
+  const [rooms, setRooms] = useState([]);
+
+  const refreshRooms = useCallback(() => {
+    if (isAuthenticated) {
+      setRooms(getRoomsByOwner(identity.username));
+    } else {
+      setRooms([]);
+    }
+  }, [isAuthenticated, identity]);
+
+  useEffect(() => {
+    refreshRooms();
+  }, [refreshRooms]);
+
+  const handleDelete = (roomId) => {
+    deleteRoom(roomId);
+    refreshRooms();
+  };
 
   return (
     <section className="content-section py-5">
@@ -34,10 +48,16 @@ function RoomsPage() {
                     </span>
                     <span>Password: {room.password ? room.password : "None"}</span>
                   </div>
+                  <small className="text-muted">
+                    Password: {room.password ? room.password : "None"}
+                  </small>
                   <div className="mt-auto d-flex gap-2">
                     <Link to={`/room/${room.id}`} className="btn btn-primary-glow flex-grow-1">
                       Open
                     </Link>
+                    <button className="btn btn-outline-danger" onClick={() => handleDelete(room.id)}>
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>

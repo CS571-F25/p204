@@ -486,3 +486,29 @@ p {
 .jump-to-bottom {
   margin-top: 0.75rem;
 }
+
+.room-console {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 60vh;
+}
+
+.console-log {
+  flex: 1;
+  min-height: 300px;
+  display: flex;
+}
+
+.console-log .message-list {
+  width: 100%;
+}
+
+.console-terminal {
+  border-top: 1px solid rgba(99, 102, 241, 0.25);
+  padding-top: 1rem;
+}
+
+.jump-to-bottom {
+  margin-top: 0.75rem;
+}
