@@ -10,8 +10,8 @@ function JoinRoomForm({ onJoin }) {
   };
 
   return (
-    <form className="border rounded-4 p-4 bg-black text-light" onSubmit={handleSubmit}>
-      <h2 className="h4 mb-3">Join a Room</h2>
+    <form className="form-card" onSubmit={handleSubmit}>
+      <h2 className="h4">Join a Room</h2>
       <div className="mb-3">
         <label htmlFor="join-room" className="form-label">
           Room ID
@@ -35,7 +35,7 @@ function JoinRoomForm({ onJoin }) {
           onChange={(event) => setPassword(event.target.value)}
         />
       </div>
-      <button className="btn btn-outline-light w-100" type="submit">
+      <button className="btn btn-primary-glow w-100" type="submit">
         Join Room
       </button>
     </form>

@@ -10,8 +10,8 @@ function CreateRoomForm({ onCreate, disabled }) {
   };
 
   return (
-    <form className="border rounded-4 p-4 bg-black text-light" onSubmit={handleSubmit}>
-      <h2 className="h4 mb-3">Create a Room</h2>
+    <form className="form-card" onSubmit={handleSubmit}>
+      <h2 className="h4">Create a Room</h2>
       <div className="mb-3">
         <label htmlFor="room-name" className="form-label">
           Room name
@@ -40,7 +40,7 @@ function CreateRoomForm({ onCreate, disabled }) {
           Leave blank to create an open room anyone can join.
         </div>
       </div>
-      <button className="btn btn-light w-100" type="submit" disabled={disabled}>
+      <button className="btn btn-primary-glow w-100" type="submit" disabled={disabled}>
         Create Room
       </button>
     </form>

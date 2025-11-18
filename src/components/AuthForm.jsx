@@ -57,7 +57,7 @@ function AuthForm({ onLogin, onSignup }) {
   };
 
   return (
-    <div className="glass-panel p-4 p-md-5 text-light">
+    <div className="form-card">
       <div className="btn-group mb-4" role="group" aria-label="Authentication mode">
         <button
           type="button"

@@ -73,14 +73,10 @@ function HomePage() {
 
         <div className="row g-4">
           <div className="col-12 col-lg-6">
-            <div className="glass-panel p-4">
-              <CreateRoomForm onCreate={handleCreateRoom} disabled={!isAuthenticated} />
-            </div>
+            <CreateRoomForm onCreate={handleCreateRoom} disabled={!isAuthenticated} />
           </div>
           <div className="col-12 col-lg-6">
-            <div className="glass-panel p-4">
-              <JoinRoomForm onJoin={handleJoinRoom} />
-            </div>
+            <JoinRoomForm onJoin={handleJoinRoom} />
           </div>
         </div>
 
