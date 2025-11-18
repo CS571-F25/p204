@@ -21,9 +21,6 @@ function App() {
                     <NavLink className="nav-link text-light" to="/">
                       Home
                     </NavLink>
-                    <NavLink className="nav-link text-light" to="/room/sample">
-                      Room
-                    </NavLink>
                     <NavLink className="nav-link text-light" to="/guides">
                       Guides
                     </NavLink>

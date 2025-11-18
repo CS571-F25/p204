@@ -13,6 +13,7 @@ import {
   recordRecentRoom,
   saveMessages,
   touchRoom,
+  loadOlderMessages,
 } from "../utils/storage.js";
 
 function RoomPage() {
@@ -24,6 +25,8 @@ function RoomPage() {
   const [error, setError] = useState(null);
   const [messages, setMessages] = useState([]);
   const [visibleCount, setVisibleCount] = useState(50);
+  const [canLoadMore, setCanLoadMore] = useState(false);
+  const [participants, setParticipants] = useState([]);
 
   useEffect(() => {
     const record = roomId ? getRoom(roomId) : null;
@@ -37,10 +40,13 @@ function RoomPage() {
       const storedMessages = getMessages(record.id);
       setMessages(storedMessages);
       setVisibleCount(50);
+      setCanLoadMore(storedMessages.length > 50);
+      const roster = buildParticipantList(record, identity.displayName);
+      setParticipants(roster);
     }
     selectRoom(roomId ?? null);
     return () => selectRoom(null);
-  }, [roomId, selectRoom]);
+  }, [roomId, selectRoom, identity.displayName]);
 
   const handleDeleteRoom = () => {
     if (!room) return;
@@ -67,12 +73,19 @@ function RoomPage() {
   };
 
   const handleLoadMore = () => {
-    setVisibleCount((prev) => Math.min(prev + 25, messages.length));
+    if (!room) return;
+    const { messages: updatedMessages, loadedCount, canLoadMore } = loadOlderMessages(
+      room.id,
+      visibleCount
+    );
+    setMessages(updatedMessages);
+    setVisibleCount(loadedCount);
+    setCanLoadMore(canLoadMore);
   };
 
   return (
-    <section className="py-5">
-      <div className="container-fluid px-4">
+    <section className="content-section py-5">
+      <div className="section-content">
         <h1>Room View</h1>
         {error && <p className="text-danger">{error}</p>}
         {!error && (
@@ -86,8 +99,8 @@ function RoomPage() {
             <div className="glass-panel p-4 mb-4">
               <MessageList
                 messages={messages.slice(-visibleCount)}
-                onLoadMore={visibleCount < messages.length ? handleLoadMore : null}
-                canLoadMore={visibleCount < messages.length}
+                onLoadMore={canLoadMore ? handleLoadMore : null}
+                canLoadMore={canLoadMore}
               />
             </div>
             <div className="glass-panel p-4">
@@ -103,7 +116,7 @@ function RoomPage() {
               />
             </div>
             <div className="glass-panel p-4">
-              <UserList users={[]} />
+              <UserList users={participants} />
             </div>
           </div>
         </div>
@@ -113,4 +126,15 @@ function RoomPage() {
 }
 
 export default RoomPage;
+
+function buildParticipantList(room, displayName) {
+  if (!room) return [];
+  const roster = [
+    { id: `owner-${room.ownerUsername}`, displayName: `${room.ownerDisplayName} (Owner)` },
+  ];
+  if (displayName && displayName !== room.ownerDisplayName) {
+    roster.push({ id: "self", displayName: `${displayName} (You)` });
+  }
+  return roster;
+}
 

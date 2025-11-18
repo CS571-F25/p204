@@ -5,6 +5,7 @@ const MESSAGES_PREFIX = "termrooms_messages_";
 const RECENTS_KEY = "termrooms_recent";
 const ROOM_LIMIT = 25;
 const RECENTS_LIMIT = 10;
+const HISTORY_BATCH = 25;
 
 function readJSON(key, fallback) {
   try {
@@ -193,5 +194,15 @@ export function recordRecentRoom(roomId) {
   const recents = getRecents().filter((id) => id !== roomId);
   recents.unshift(roomId);
   saveRecents(recents.slice(0, RECENTS_LIMIT));
+}
+
+export function loadOlderMessages(roomId, currentCount) {
+  const allMessages = getMessages(roomId);
+  const nextCount = Math.min(currentCount + HISTORY_BATCH, allMessages.length);
+  return {
+    messages: allMessages.slice(-nextCount),
+    canLoadMore: nextCount < allMessages.length,
+    loadedCount: nextCount,
+  };
 }
 

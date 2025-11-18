@@ -93,9 +93,6 @@ function Terminal({ onChat }) {
       case "rooms":
         handleRoomsCommand(print);
         break;
-      case "history":
-        print("Chat loading via /history not yet implemented in terminal. Use the button on page.", "warning");
-        break;
       case "clear":
         clearTerminal();
         break;
@@ -195,4 +192,5 @@ function handleRoomsCommand(print) {
       print(`${room.id} - ${room.name} (owner: ${room.ownerDisplayName})`, "info");
     });
 }
+
 

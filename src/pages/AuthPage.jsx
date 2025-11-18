@@ -5,8 +5,8 @@ function AuthPage() {
   const { login, signup } = useAuth();
 
   return (
-    <section className="py-5">
-      <div className="container-fluid px-4">
+    <section className="content-section py-5">
+      <div className="section-content">
         <div className="row g-4 align-items-center">
           <div className="col-12 col-lg-6">
             <div className="glass-panel p-5 text-light h-100">
