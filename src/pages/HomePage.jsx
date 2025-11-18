@@ -1,86 +1,49 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
-import CreateRoomForm from "../components/CreateRoomForm.jsx";
-import JoinRoomForm from "../components/JoinRoomForm.jsx";
-import HelpPanel from "../components/HelpPanel.jsx";
-import {
-  createRoomRecord,
-  getRoom,
-  recordRecentRoom,
-  roomPasswordMatches,
-} from "../utils/storage.js";
+import { Link } from "react-router-dom";
 
 function HomePage() {
-  const navigate = useNavigate();
-  const { isAuthenticated, identity } = useAuth();
-  const [alert, setAlert] = useState(null);
-
-  const showAlert = (variant, message) => setAlert({ variant, message });
-
-  const handleCreateRoom = ({ name, password }) => {
-    if (!isAuthenticated) {
-      showAlert("warning", "You must be signed in to create a room.");
-      return;
-    }
-
-    try {
-      const room = createRoomRecord({
-        name: name.trim(),
-        password: password.trim(),
-        ownerUsername: identity.username,
-        ownerDisplayName: identity.displayName,
-      });
-      showAlert("success", `Room "${room.name}" created. Redirecting you there now...`);
-      navigate(`/room/${room.id}`);
-    } catch (error) {
-      showAlert("danger", error.message);
-    }
-  };
-
-  const handleJoinRoom = ({ roomId, password }) => {
-    const normalizedId = roomId.trim().toLowerCase();
-    const room = getRoom(normalizedId);
-    if (!room) {
-      showAlert("danger", "Room not found. Double-check the ID.");
-      return;
-    }
-
-    if (!roomPasswordMatches(room, password.trim())) {
-      showAlert("danger", "Incorrect password.");
-      return;
-    }
-
-    recordRecentRoom(room.id);
-    showAlert("success", `Joining room "${room.name}".`);
-    navigate(`/room/${room.id}`);
-  };
-
   return (
     <section className="content-section py-5">
-      <div className="section-content text-light">
-        <h1 className="text-light">TermRooms Home</h1>
-        <p className="text-muted">
-          Create new rooms (if signed in) or join existing ones using the forms below. Once you are
-          inside a room, the terminal takes over for messaging and quick room management.
-        </p>
-
-        {alert && (
-          <div className={`alert alert-${alert.variant}`} role="alert">
-            {alert.message}
-          </div>
-        )}
-
-        <div className="row g-4 justify-content-center">
-          <div className="col-12 col-md-6 col-xl-5">
-            <CreateRoomForm onCreate={handleCreateRoom} disabled={!isAuthenticated} />
-          </div>
-          <div className="col-12 col-md-6 col-xl-5">
-            <JoinRoomForm onJoin={handleJoinRoom} />
+      <div className="section-content text-light home-hero">
+        <div>
+          <p className="eyebrow text-muted mb-2">Terminal-first collaboration</p>
+          <h1 className="display-5 fw-semibold text-light mb-3">TermRooms</h1>
+          <p className="lead text-light">
+            Spin up a room, share the ID, and work together in a focused terminal surface. Simple,
+            local, and fast—no backend required.
+          </p>
+          <div className="d-flex flex-wrap gap-3 mt-4">
+            <Link to="/rooms" className="btn btn-primary-glow btn-lg">
+              Manage rooms
+            </Link>
+            <Link to="/guides" className="btn btn-outline-light btn-lg">
+              Read the guide
+            </Link>
           </div>
         </div>
 
-        <HelpPanel />
+        <div className="command-cheatsheet mt-5">
+          <h2 className="h5 text-light mb-3">Keyboard commands</h2>
+          <ul className="list-unstyled command-list">
+            <li>
+              <code>/msg</code> send chat to the active room
+            </li>
+            <li>
+              <code>/whoami</code> show your identity
+            </li>
+            <li>
+              <code>/setname</code> update your display name
+            </li>
+            <li>
+              <code>/rooms</code> list rooms you created
+            </li>
+            <li>
+              <code>/leave</code> return to the lobby
+            </li>
+            <li>
+              <code>/clear</code> reset the terminal output
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
   );

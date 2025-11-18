@@ -1,7 +1,7 @@
 function UserList({ users }) {
   return (
-    <div className="border rounded-4 p-3 bg-black text-light">
-      <h2 className="h5 mb-3">Active Participants</h2>
+    <div className="user-list-panel text-light">
+      <p className="eyebrow text-muted mb-1">Participants</p>
       {users.length === 0 ? (
         <p className="text-muted">User list coming soon.</p>
       ) : (

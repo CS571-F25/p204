@@ -7,9 +7,13 @@ const ROOM_LIMIT = 25;
 const RECENTS_LIMIT = 10;
 const HISTORY_BATCH = 25;
 
-function readJSON(key, fallback) {
+const safeLocalStorage = typeof window !== "undefined" ? window.localStorage : null;
+const safeSessionStorage = typeof window !== "undefined" ? window.sessionStorage : null;
+
+function readJSON(key, fallback, store = safeLocalStorage) {
   try {
-    const raw = localStorage.getItem(key);
+    if (!store) return fallback;
+    const raw = store.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
   } catch (err) {
     console.warn(`Failed to read ${key} from localStorage`, err);
@@ -17,8 +21,8 @@ function readJSON(key, fallback) {
   }
 }
 
-function writeJSON(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+function writeJSON(key, value, store = safeLocalStorage) {
+  store?.setItem(key, JSON.stringify(value));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -74,15 +78,15 @@ export function updateAccountDisplayName(username, displayName) {
 }
 
 export function saveSession(session) {
-  writeJSON(SESSION_KEY, session);
+  writeJSON(SESSION_KEY, session, safeSessionStorage);
 }
 
 export function getSession() {
-  return readJSON(SESSION_KEY, null);
+  return readJSON(SESSION_KEY, null, safeSessionStorage);
 }
 
 export function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
+  safeSessionStorage?.removeItem(SESSION_KEY);
 }
 
 /* -------------------------------------------------------------------------- */

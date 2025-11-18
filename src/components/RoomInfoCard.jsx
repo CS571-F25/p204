@@ -8,34 +8,34 @@ function RoomInfoCard({ room, canDelete, onDelete }) {
   }
 
   return (
-    <div className="room-info-card text-light">
-      <div>
-        <p className="eyebrow text-muted mb-1">Now viewing</p>
-        <h2 className="h5 mb-0">{room.name}</h2>
-      </div>
-      <div className="meta-row">
-        <span>ID</span>
-        <span>{room.id}</span>
-      </div>
-      <div className="meta-row">
-        <span>Owner</span>
-        <span>{room.ownerDisplayName}</span>
-      </div>
-      <div className="meta-row">
-        <span>Created</span>
-        <span>{new Date(room.createdAt).toLocaleString()}</span>
-      </div>
-      <div className="meta-row">
-        <span>Last active</span>
-        <span>{new Date(room.lastActiveAt).toLocaleString()}</span>
-      </div>
-      <div className="meta-row">
-        <span>Password</span>
-        <span>{room.password ? "Required" : "Open"}</span>
-      </div>
+    <div className="room-info text-light">
+      <p className="eyebrow text-muted mb-1">Room details</p>
+      <h2 className="h5 mb-3">{room.name}</h2>
+      <dl className="room-info-list">
+        <div>
+          <dt>ID</dt>
+          <dd>{room.id}</dd>
+        </div>
+        <div>
+          <dt>Owner</dt>
+          <dd>{room.ownerDisplayName}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{new Date(room.createdAt).toLocaleString()}</dd>
+        </div>
+        <div>
+          <dt>Last active</dt>
+          <dd>{new Date(room.lastActiveAt).toLocaleString()}</dd>
+        </div>
+        <div>
+          <dt>Password</dt>
+          <dd>{room.password ? "Required" : "Open"}</dd>
+        </div>
+      </dl>
       {canDelete && (
-        <button className="btn btn-outline-danger w-100 mt-3" onClick={onDelete}>
-          Delete Room
+        <button className="btn btn-outline-danger btn-sm mt-2" onClick={onDelete}>
+          Delete room
         </button>
       )}
     </div>

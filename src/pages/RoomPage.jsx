@@ -132,7 +132,7 @@ function RoomPage() {
         </header>
         {error && <p className="text-danger">{error}</p>}
         <div className="room-layout">
-          <div className="room-console glass-panel">
+          <div className="room-console">
             <div className="console-log">
               <MessageList
                 messages={messages.slice(-visibleCount)}
@@ -144,7 +144,7 @@ function RoomPage() {
               <Terminal onChat={handleSendMessage} variant="embedded" />
             </div>
           </div>
-          <aside className="room-sidebar glass-panel">
+          <aside className="room-sidebar">
             <RoomInfoCard
               room={room}
               canDelete={canDeleteOwner(room, identity, isAuthenticated)}

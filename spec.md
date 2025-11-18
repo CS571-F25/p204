@@ -97,7 +97,7 @@ User Action → Component Handler → Update State → Save to localStorage → 
 #### **User & Account Model**
 
 - `termrooms_accounts`: `{ id, username, displayName, pinHash, createdAt }`
-- `termrooms_session`: `{ username, displayName }`
+- `termrooms_session`: `{ username, displayName }` (stored in `sessionStorage` so each browser tab can stay signed in as a different identity)
 - Guest nicknames are generated client-side per visit (not persisted today).
 - Roles:
   - `owner`: any authenticated account; permitted to create/delete rooms it owns
