@@ -4,11 +4,7 @@ function TerminalOutput() {
   const { terminalOutput } = useAppContext();
 
   if (!terminalOutput.length) {
-    return (
-      <div className="terminal-output text-muted">
-        <p>Type /help to see available commands.</p>
-      </div>
-    );
+    return null;
   }
 
   return (

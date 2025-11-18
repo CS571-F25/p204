@@ -500,6 +500,7 @@ p {
 .console-terminal {
   border-top: 1px solid rgba(99, 102, 241, 0.2);
   padding-top: 1rem;
+  margin-top: auto;
 }
 
 .room-sidebar {

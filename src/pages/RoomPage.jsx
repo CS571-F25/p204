@@ -121,11 +121,7 @@ function RoomPage() {
     <section className="content-section py-5 room-shell">
       <div className="section-content">
         <header className="room-hero glass-panel mb-4">
-          <div>
-            <p className="eyebrow text-muted mb-1">Room</p>
-            <h1 className="room-title mb-1">{room?.name ?? roomId}</h1>
-            <p className="text-muted mb-0 small">ID: {room?.id ?? "—"}</p>
-          </div>
+          <h1 className="room-title mb-0">{room?.name ?? roomId}</h1>
         </header>
         {error && <p className="text-danger">{error}</p>}
         <div className="room-layout">
