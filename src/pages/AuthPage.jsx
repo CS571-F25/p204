@@ -1,17 +1,9 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import AuthForm from "../components/AuthForm.jsx";
 
 function AuthPage() {
-  const { login, signup, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
+  const { login, signup, isAuthenticated, identity, logout } = useAuth();
 
   return (
     <section className="content-section py-5">
@@ -27,11 +19,28 @@ function AuthPage() {
               </p>
             </div>
           </div>
-          {!isAuthenticated && (
-            <div className="col-12 col-lg-6">
+          <div className="col-12 col-lg-6">
+            {isAuthenticated ? (
+              <div className="glass-panel p-5 text-light d-flex flex-column gap-3">
+                <p className="eyebrow text-muted mb-1">Signed in as</p>
+                <h2 className="h4 mb-0">{identity.displayName}</h2>
+                <div className="d-flex flex-column gap-1 text-muted small">
+                  <span>Username: {identity.username}</span>
+                  <span>Role: {identity.role}</span>
+                </div>
+                <div className="d-flex flex-wrap gap-3">
+                  <Link to="/" className="btn btn-primary-glow flex-grow-1">
+                    Return Home
+                  </Link>
+                  <button className="btn btn-outline-light flex-grow-1" onClick={logout}>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
               <AuthForm onLogin={login} onSignup={signup} />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </section>

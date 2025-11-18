@@ -17,13 +17,16 @@ function CommandInput({ onSubmit }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="d-flex gap-2">
+    <form onSubmit={handleSubmit} className="terminal-input-shell">
       <label htmlFor="terminal-input" className="visually-hidden">
         Terminal command
       </label>
+      <span aria-hidden="true" className="terminal-prompt">
+        $
+      </span>
       <input
         id="terminal-input"
-        className="form-control form-control-lg bg-dark text-light border-secondary"
+        className="terminal-input"
         placeholder="Type commands like /help"
         value={value}
         onChange={(event) => setValue(event.target.value)}
@@ -35,9 +38,6 @@ function CommandInput({ onSubmit }) {
           }
         }}
       />
-      <button className="btn btn-light btn-lg" type="submit">
-        Enter
-      </button>
     </form>
   );
 }

@@ -211,6 +211,7 @@
   background: transparent;
   border: none;
   box-shadow: none;
+  max-height: 360px;
 }
 
 .terminal-panel .terminal {
@@ -302,7 +303,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.5rem;
   padding-right: 0.5rem;
 }
 
@@ -314,8 +315,12 @@
 }
 
 .message-item strong {
-  color: #58a6ff;
+  color: #60a5fa;
   letter-spacing: 0.05em;
+}
+
+.message-item .timestamp {
+  color: rgba(226, 232, 255, 0.65) !important;
 }
 
 .message-item p {
@@ -385,4 +390,34 @@ p {
   .message-list-scroll {
     max-height: 240px;
   }
+}
+
+.terminal-input-shell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  background: rgba(6, 9, 20, 0.85);
+  padding: 0.4rem 0.85rem;
+}
+
+.terminal-prompt {
+  color: #38bdf8;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  font-size: 1rem;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  outline: none;
+}
+
+.terminal-input::placeholder {
+  color: rgba(226, 232, 255, 0.45);
 }
