@@ -12,6 +12,7 @@ import {
   roomPasswordMatches,
   addParticipant,
   getRecents,
+  saveRoom,
 } from "../utils/storage.js";
 
 function RoomsPage() {
@@ -20,6 +21,8 @@ function RoomsPage() {
   const [rooms, setRooms] = useState([]);
   const [recentRooms, setRecentRooms] = useState([]);
   const [alert, setAlert] = useState(null);
+  const [editingRoomId, setEditingRoomId] = useState(null);
+  const [editName, setEditName] = useState("");
 
   const refreshRooms = useCallback(() => {
     if (isAuthenticated) {
@@ -39,6 +42,18 @@ function RoomsPage() {
 
   const handleDelete = (roomId) => {
     deleteRoom(roomId);
+    refreshRooms();
+  };
+
+  const handleRenameSave = (roomId) => {
+    const target = getRoom(roomId);
+    if (!target || !editName.trim()) {
+      setAlert({ variant: "warning", message: "Room name cannot be empty." });
+      return;
+    }
+    saveRoom({ ...target, name: editName.trim() });
+    setAlert({ variant: "success", message: "Room name updated." });
+    setEditingRoomId(null);
     refreshRooms();
   };
 
@@ -76,6 +91,7 @@ function RoomsPage() {
     addParticipant(lookup.id, {
       username: isAuthenticated ? identity.username : null,
       displayName: identity.displayName,
+      role: "member",
     });
     setAlert({ variant: "success", message: `Joining "${lookup.name}".` });
     navigate(`/room/${lookup.id}`);
@@ -127,14 +143,61 @@ function RoomsPage() {
                         <span>Password: {room.password ? room.password : "None"}</span>
                       </div>
                     </div>
-                    <div className="d-flex gap-2 mt-2 mt-md-0">
-                      <Link to={`/room/${room.id}`} className="btn btn-outline-light btn-sm">
-                        Open
+                    <div className="d-flex gap-2 mt-2 mt-md-0 align-items-center">
+                      <Link to={`/room/${room.id}`} className="icon-btn" title="Open room">
+                        <ArrowIcon />
                       </Link>
-                      <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(room.id)}>
-                        Delete
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        title="Edit room"
+                        onClick={() => {
+                          setEditingRoomId(room.id);
+                          setEditName(room.name);
+                        }}
+                      >
+                        <EditIcon />
                       </button>
                     </div>
+                    {editingRoomId === room.id && (
+                      <div className="room-edit-panel mt-3 w-100">
+                        <label htmlFor={`rename-${room.id}`} className="form-label text-muted small">
+                          Room name
+                        </label>
+                        <input
+                          id={`rename-${room.id}`}
+                          className="form-control mb-2"
+                          value={editName}
+                          onChange={(event) => setEditName(event.target.value)}
+                        />
+                        <div className="d-flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-primary-glow btn-sm"
+                            onClick={() => handleRenameSave(room.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-outline-light btn-sm"
+                            onClick={() => setEditingRoomId(null)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => {
+                              handleDelete(room.id);
+                              setEditingRoomId(null);
+                            }}
+                          >
+                            Delete room
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -164,4 +227,32 @@ function RoomsPage() {
 }
 
 export default RoomsPage;
+
+function ArrowIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M4 8h8m0 0-3-3m3 3-3 3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="m9.5 3.5 3 3L6 13H3v-3l6.5-6.5Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 

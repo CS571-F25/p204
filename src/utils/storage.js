@@ -3,6 +3,7 @@ const SESSION_KEY = "termrooms_session";
 const ROOMS_KEY = "termrooms_rooms";
 const MESSAGES_PREFIX = "termrooms_messages_";
 const RECENTS_KEY = "termrooms_recent";
+const INVITES_KEY = "termrooms_invites";
 const ROOM_LIMIT = 25;
 const RECENTS_LIMIT = 10;
 const HISTORY_BATCH = 25;
@@ -154,10 +155,13 @@ export function createRoomRecord({ name, password = "", ownerUsername, ownerDisp
     ownerDisplayName,
     createdAt: now,
     lastActiveAt: now,
+    topic: "",
+    banned: [],
     participants: [
       {
         username: ownerUsername,
         displayName: ownerDisplayName,
+        role: "leader",
       },
     ],
   };
@@ -188,26 +192,35 @@ export function addParticipant(roomId, participant) {
   const room = getRoom(roomId);
   if (!room) return;
   room.participants = room.participants ?? [];
+  room.banned = room.banned ?? [];
+  const isBanned = room.banned.some(
+    (name) => name.toLowerCase() === (participant.displayName ?? "").toLowerCase(),
+  );
+  if (isBanned) return;
   const exists = room.participants.some((p) => {
     if (participant.username && p.username) {
       return p.username === participant.username;
     }
-    return p.displayName === participant.displayName;
+    return (p.displayName ?? "").toLowerCase() === (participant.displayName ?? "").toLowerCase();
   });
   if (!exists) {
-    room.participants.push(participant);
+    room.participants.push({
+      username: participant.username ?? null,
+      displayName: participant.displayName,
+      role: participant.role ?? "member",
+    });
     saveRoom(room);
   }
 }
 
-export function removeParticipant(roomId, username, displayName) {
+export function removeParticipant(roomId, { username, displayName }) {
   const room = getRoom(roomId);
   if (!room || !room.participants) return;
   room.participants = room.participants.filter((p) => {
     if (username && p.username) {
       return p.username !== username;
     }
-    return p.displayName !== displayName;
+    return (p.displayName ?? "").toLowerCase() !== (displayName ?? "").toLowerCase();
   });
   saveRoom(room);
 }
@@ -237,6 +250,31 @@ export function recordRecentRoom(roomId) {
   const recents = getRecents().filter((id) => id !== roomId);
   recents.unshift(roomId);
   saveRecents(recents.slice(0, RECENTS_LIMIT));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Invites                                                                    */
+/* -------------------------------------------------------------------------- */
+
+export function sendInvite({ roomId, recipient, message, sender }) {
+  const invites = readJSON(INVITES_KEY, []);
+  invites.push({
+    id: crypto.randomUUID(),
+    roomId,
+    recipient,
+    message,
+    sender,
+    createdAt: new Date().toISOString(),
+  });
+  writeJSON(INVITES_KEY, invites);
+}
+
+export function getInvitesForRecipient(recipientKey) {
+  if (!recipientKey) return [];
+  const invites = readJSON(INVITES_KEY, []);
+  return invites.filter(
+    (invite) => invite.recipient?.toLowerCase() === recipientKey.toLowerCase(),
+  );
 }
 
 export function loadOlderMessages(roomId, currentCount) {

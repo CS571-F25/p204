@@ -112,6 +112,31 @@
   border-bottom: none;
 }
 
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: #f5faff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.icon-btn:hover {
+  background: rgba(88, 166, 255, 0.1);
+  border-color: rgba(88, 166, 255, 0.6);
+}
+
+.room-edit-panel {
+  background: rgba(8, 12, 24, 0.6);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 0.85rem;
+  padding: 1rem;
+}
+
 .command-chip {
   display: flex;
   flex-direction: column;
@@ -475,6 +500,37 @@ p {
   border: none;
   box-shadow: none;
   padding: 0;
+}
+
+.mail-card {
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 1rem;
+  background: rgba(5, 9, 20, 0.6);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.mail-form .form-control,
+.mail-form .form-select {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(147, 197, 253, 0.25);
+  color: #f1f5fa;
+}
+
+.mail-room-select {
+  min-width: 140px;
+}
+
+.mail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mail-item {
+  padding: 0.85rem;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 0.85rem;
+  background: rgba(9, 12, 26, 0.65);
 }
 
 .room-layout {

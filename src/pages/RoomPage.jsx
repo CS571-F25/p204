@@ -7,7 +7,6 @@ import UserList from "../components/UserList.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import {
-  deleteRoom,
   getMessages,
   getRoom,
   recordRecentRoom,
@@ -40,18 +39,6 @@ function RoomPage() {
     const timeout = setTimeout(() => setInputFeedback(null), 2000);
     return () => clearTimeout(timeout);
   }, [inputFeedback]);
-
-  useEffect(() => {
-    if (!roomId) return undefined;
-    const participant = {
-      username: isAuthenticated ? identity.username : null,
-      displayName: identity.displayName,
-    };
-    addParticipant(roomId, participant);
-    return () => {
-      removeParticipant(roomId, participant.username, participant.displayName);
-    };
-  }, [roomId, identity.username, identity.displayName, isAuthenticated]);
 
   const hydrateRoom = useCallback(() => {
     const record = roomId ? getRoom(roomId) : null;
@@ -96,14 +83,22 @@ function RoomPage() {
     return () => window.removeEventListener("storage", handleStorage);
   }, [roomId, hydrateRoom]);
 
-  const handleDeleteRoom = () => {
-    if (!room) return;
-    if (!isAuthenticated || identity.username !== room.ownerUsername) {
-      return;
-    }
-    deleteRoom(room.id);
-    navigate("/");
-  };
+  useEffect(() => {
+    if (!roomId || !room) return undefined;
+    const isLeader = isAuthenticated && identity.username === room.ownerUsername;
+    const participant = {
+      username: isAuthenticated ? identity.username : null,
+      displayName: identity.displayName,
+      role: isLeader ? "leader" : "member",
+    };
+    addParticipant(roomId, participant);
+    return () => {
+      removeParticipant(roomId, {
+        username: participant.username,
+        displayName: participant.displayName,
+      });
+    };
+  }, [roomId, room, identity.username, identity.displayName, isAuthenticated]);
 
   const handleSendMessage = (text) => {
     if (!room) return;
@@ -153,11 +148,7 @@ function RoomPage() {
             {inputFeedback && <p className="feedback-line text-success small">{inputFeedback}</p>}
           </div>
           <aside className="room-sidebar">
-            <RoomInfoCard
-              room={room}
-              canDelete={canDeleteOwner(room, identity, isAuthenticated)}
-              onDelete={handleDeleteRoom}
-            />
+            <RoomInfoCard room={room} />
             <div className="divider" />
             <UserList users={participants} />
           </aside>
@@ -169,16 +160,24 @@ function RoomPage() {
 
 export default RoomPage;
 
-function canDeleteOwner(room, identity, isAuthenticated) {
-  return Boolean(room && isAuthenticated && identity.username === room.ownerUsername);
-}
-
 function buildParticipantList(room) {
   if (!room) return [];
   const people = room.participants ?? [];
   return people.map((p, index) => ({
     id: p.username ? `participant-${p.username}` : `participant-${index}`,
-    displayName: p.displayName + (p.username === room.ownerUsername ? " (Owner)" : ""),
+    displayName: p.displayName,
+    role: formatRole(p.role ?? (p.username === room.ownerUsername ? "leader" : "member")),
   }));
+}
+
+function formatRole(role) {
+  switch (role) {
+    case "leader":
+      return "Leader";
+    case "coLeader":
+      return "Co-leader";
+    default:
+      return "Member";
+  }
 }
 

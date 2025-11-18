@@ -131,7 +131,12 @@ User Action → Component Handler → Update State → Save to localStorage → 
     ownerId: "user_123",
     createdBy: "JohnDoe", // display name of creator
     lastActiveAt: "2025-11-01T10:30:00Z",
-    isArchived: false
+    topic: "",
+    banned: [],
+    participants: [
+      { username: "user_123", displayName: "JohnDoe", role: "leader" },
+      { username: null, displayName: "Guest-0912", role: "member" }
+    ]
   }
 ]
 
@@ -155,6 +160,16 @@ User Action → Component Handler → Update State → Save to localStorage → 
   username: "yazod",
   displayName: "Yazod A."
 }
+'termrooms_invites' = [
+  {
+    id: "invite_1",
+    roomId: "abc123",
+    recipient: "classmate01",
+    sender: "Yazod",
+    message: "Join my debugging room!",
+    createdAt: "2025-11-02T09:00:00Z"
+  }
+]
 ```
 
 ---
@@ -235,7 +250,12 @@ A component is a **reusable piece of UI** that:
    - Contains: Interactive walkthrough plus a command glossary mirroring the in-app cheatsheet
    - Provides static content required for the "3+ pages" milestone while reinforcing the terminal metaphor
 
-5. **AuthPage** (`src/pages/AuthPage.jsx`)
+5. **MailPage** (`src/pages/MailPage.jsx`)
+   - Route: `/mail`
+   - Purpose: Local invite hub (“mailbox”) for sending/receiving room invites
+   - Contains: Invite form (recipient, room ID, optional message) plus an inbox filtered to the signed-in username or guest display name
+
+6. **AuthPage** (`src/pages/AuthPage.jsx`)
    - Route: `/auth`
    - Purpose: Manage account creation and login outside the terminal
    - Contains: descriptive hero card + `AuthForm` (single component toggles login/sign-up)
@@ -271,8 +291,8 @@ The project now focuses on the components that actually ship in `src/components/
    - Placeholder roster for future multi-user awareness; currently lists owner + self
 
 7. **RoomInfoCard** (`src/components/RoomInfoCard.jsx`)
-   - Shows room metadata (ID, owner, timestamps, password flag)
-   - Surfaces a delete button only when the viewer owns the room
+   - Shows room metadata (ID, topic, owner, timestamps, password flag)
+   - Acts as a read-only summary; destructive actions now live on the Rooms page edit panel
 
 8. **CreateRoomForm** (`src/components/CreateRoomForm.jsx`)
    - Handles room creation (name + optional password) and enforces auth requirement
@@ -299,10 +319,11 @@ Commands are parsed from user input starting with `/`. Structured actions (creat
 - **Forms on RoomsPage**: Primary method for creating or joining rooms via CreateRoomForm and JoinRoomForm
 - **Terminal in RoomPage**: Chat, rename, leave, delete rooms, clear output
 
-Commands use simple argument syntax (no flags). The single terminal input is the canonical way to interact, with forms providing optional fallbacks. Authentication is handled outside the terminal, so the command list starts with room actions.
+Commands use simple argument syntax (no flags). The single terminal input is the canonical way to interact, with forms providing optional fallbacks. Authentication is handled outside the terminal, so the command list starts with room actions.  
+**Notation**: `<value>` = required argument, `[value]` = optional argument.
 
 #### Identity Commands
-1. **`/setname [display-name]`**
+1. **`/setname <display-name>`**
    - Updates display name (persists for logged-in users; temporary for guests)
 
 2. **`/whoami`**
@@ -312,27 +333,52 @@ Commands use simple argument syntax (no flags). The single terminal input is the
 3. **`/leave`**
    - Leaves the current room and returns to Home
 
-4. **`/delete [room-id]`** *(owner only)*
+4. **`/delete <room-id>`** *(owner only)*
    - Immediately removes the room and its messages from localStorage
 
 #### Messaging & Support Commands
-5. **Plain text (no leading slash)**
+5. **`/topic [text|clear]`**
+   - Without arguments shows the current room topic; owners can set a new topic or run `/topic clear` to remove it
+
+6. **`/invite <username> [message]`**
+   - Leaders or co-leaders can send an invite that appears in the recipient’s Mail page inbox
+
+7. **`/kick <display-name>`**
+   - Leaders or co-leaders can remove a participant (only leaders can remove another co-leader)
+
+8. **`/ban <display-name>`**
+   - Leaders can remove and ban a participant; banned names can’t rejoin unless unbanned manually
+
+9. **`/promote <display-name>`**
+   - Leaders can promote a member to co-leader
+
+10. **`/demote <display-name>`**
+    - Leaders can demote a co-leader back to member
+
+11. **Plain text (no leading slash)**
     - Broadcasts to the current room; anything that doesn’t start with `/` is treated as chat
 
-6. **`/help`**
+12. **`/help`**
     - Prints the inline cheat sheet (no topic filtering yet)
 
-7. **`/guide`**
+13. **`/guide`**
     - Navigates to the Guide page for the full documentation
 
-8. **`/clear`**
+14. **`/clear`**
     - Clears terminal output locally (does not delete chat history)
 
-9. **`/recent`**
-    - Lists the last few rooms you opened, based on the recents list stored in `localStorage`
+15. **`/recent [clear]`**
+    - Lists the last few rooms you opened (stored in `localStorage`); `clear` wipes the list
 
-10. **`/relay room-id message`**
-    - Injects a chat message into another room’s history without leaving your current room
+16. **`/relay <room-id> [password] <message>`**
+    - Injects a chat message into another room’s history without leaving your current room (password required unless you own the room)
+
+### **Leadership Roles & Permissions**
+
+- **Leader**: The room owner. Can promote/demote, ban, kick, invite, delete, and edit room metadata.
+- **Co-leader**: Delegated by the leader. Can invite and kick members, but cannot ban, promote, or delete.
+- **Member**: Default role for everyone else. Can chat, set display names, and use informational commands.
+- Roles are persisted per participant entry (`participants[].role`) and rendered in the user list/UI badges.
 
 ### **Messaging Model**
 
@@ -344,7 +390,7 @@ Commands use simple argument syntax (no flags). The single terminal input is the
 - **Simple Design**: Keeps the implementation minimal and avoids complex user management
 - **Message Loading**:
   - When you enter a room, the latest 50 messages load instantly from localStorage and render in the chat list.
-  - A “Load 25 earlier messages” button (label includes the count) appears when older messages exist; each press loads another 25 until history is exhausted.
+  - A “Load 25 earlier messages” button appears when older messages exist; each press loads another 25 until history is exhausted.
   - Terminal output only shows command results; chat history stays separate so the terminal stays lightweight.
 
 ### **Message Types**
@@ -358,6 +404,7 @@ Messages saved in `localStorage` currently use a single `type` of `"message"` be
 - **Message Persistence**: Messages saved per room as chat bubbles
 - **Room List**: View all created rooms on the Rooms page
 - **Recent Rooms**: Track recently visited rooms
+- **Room Topics**: Owners can assign an optional topic via `/topic`, surfaced in the sidebar
 - **Single Terminal Focus**: One primary terminal per page; users switch rooms via commands or cards instead of multiple floating panels.
 - **Activity Indicators**: Room info card shows owner, creation time, last activity, and whether a password exists.
 - **Ownership Controls**:
@@ -368,6 +415,9 @@ Messages saved in `localStorage` currently use a single `type` of `"message"` be
   - Rooms persist in localStorage until the owner deletes them.
   - Hard cap of 25 rooms per installation to prevent unbounded storage.
   - The recents list keeps the 10 most recently opened room IDs for quick access.
+- **Mail & Invites**:
+  - Invites are stored in `termrooms_invites` with sender, recipient, and message metadata.
+  - MailPage surfaces invites addressed to the signed-in username (or guest display name) and offers a simple invite form.
 
 ---
 
@@ -506,27 +556,43 @@ Follow these numbered steps sequentially. After completing a step, mark it done 
 
 6. **Room Lifecycle**
    - Build `CreateRoomForm` and `JoinRoomForm`.
-   - Implement `/leave` and `/delete`.
-   - Add `RoomInfoCard` showing owner info + delete button (owner only). (RoomCard backlog item optional.)
+   - Implement `/leave`, `/delete`, and `/topic`.
+   - Add `RoomInfoCard` showing owner info + topic metadata; destructive actions live in the Rooms page edit panel.
 
 7. **Messaging**
    - Build `MessageList`, `MessageItem`, `UserList`.
    - Ensure plain-text chat flow works end-to-end (non-slash input posts to the room).
+   - Add `/recent` (with `clear`) and `/relay` for cross-room coordination.
    - Load last 50 messages on room entry; add “Load 25 earlier messages” button (UI-only for now; `/history` command deferred).
 
-8. **Guide & Help Content**
+8. **Mail & Invites**
+   - Build `MailPage` with invite form + inbox view.
+   - Add `sendInvite` / `getInvitesForRecipient` helpers and `/invite` command wiring.
+
+9. **Guide & Help Content**
    - Flesh out `GuidePage` (onboarding steps + command glossary).
    - Connect `HelpPanel` to the same content.
 
-9. **Styling & Accessibility**
+10. **Styling & Accessibility**
    - Apply terminal theme (colors, fonts), ensure responsive layout.
    - Add form labels, ARIA attributes, keyboard focus states.
 
-10. **Testing & Deployment**
+11. **Testing & Deployment**
     - Manual test script: signup, create room, join as guest in another tab, chat, delete room, reload.
     - `npm run build`, push to GitHub, verify GitHub Pages deployment.
 
 Repeat the checklist review before each work session so progress stays clear and no functionality is left behind.
+
+---
+
+## Future Roadmap (Firebase Migration)
+
+- **Data layer swap**: All persistence lives in `storage.js`, so we can replace the read/write helpers with Firebase SDK calls (Firestore/Realtime DB) without rewriting components.
+- **Auth upgrade**: Once Firebase Auth is introduced, `AuthContext` simply switches from local PIN storage to Firebase auth tokens.
+- **Live presence & invites**: Invites and participant roles will sync in real time once Firebase listeners replace the current `storage` event bridge.
+- **Security**: Firebase rules will enforce that only leaders/co-leaders can mutate protected fields (topics, bans, leadership roles).
+
+This roadmap keeps the current local-first approach lightweight while signaling exactly how the project will grow for the final submission.
 
 ---
 
@@ -803,12 +869,14 @@ export function formatTimestamp(date) {
 2. **Create utility functions** - Build storage.js, commands.js, roomUtils.js
 3. **Set up routing** - Configure App.jsx with HashRouter
 4. **Build Navbar** - First component
-5. **Build RoomsPage** - Create/join forms hub
-6. **Build RoomPage** - Terminal interface
-7. **Implement commands** - One at a time
-8. **Add styling** - Terminal theme with Bootstrap
-9. **Test & polish** - Accessibility, edge cases
-10. **Deploy** - Build and push to GitHub
+5. **Build RoomsPage** - Create/join hub + edit drawer + icon buttons
+6. **Build RoomPage** - Terminal interface, user list, topic display
+7. **Implement commands** - Core commands, leadership actions, `/invite` + `/mail`
+8. **Build MailPage** - Invite form + inbox wired to `termrooms_invites`
+9. **Add styling** - Terminal theme with Bootstrap
+10. **Test & polish** - Accessibility, edge cases
+11. **Deploy** - Build and push to GitHub
+12. **Prep for Firebase** - Abstract storage helpers so they can be swapped for Firestore later
 
 ---
 

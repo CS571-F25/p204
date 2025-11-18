@@ -7,7 +7,10 @@ function UserList({ users }) {
       ) : (
         <ul className="list-unstyled mb-0">
           {users.map((user) => (
-            <li key={user.id}>{user.displayName}</li>
+            <li key={user.id}>
+              <span className="user-name">{user.displayName}</span>
+              <span className="badge rounded-pill text-bg-secondary ms-2">{user.role}</span>
+            </li>
           ))}
         </ul>
       )}

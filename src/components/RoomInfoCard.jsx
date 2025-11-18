@@ -1,4 +1,4 @@
-function RoomInfoCard({ room, canDelete, onDelete }) {
+function RoomInfoCard({ room }) {
   if (!room) {
     return (
       <div className="alert alert-warning mt-4">
@@ -15,6 +15,12 @@ function RoomInfoCard({ room, canDelete, onDelete }) {
           <dt>ID</dt>
           <dd>{room.id}</dd>
         </div>
+        {room.topic && (
+          <div>
+            <dt>Topic</dt>
+            <dd>{room.topic}</dd>
+          </div>
+        )}
         <div>
           <dt>Owner</dt>
           <dd>{room.ownerDisplayName}</dd>
@@ -32,11 +38,6 @@ function RoomInfoCard({ room, canDelete, onDelete }) {
           <dd>{room.password ? "Required" : "Open"}</dd>
         </div>
       </dl>
-      {canDelete && (
-        <button className="btn btn-outline-danger btn-sm mt-2" onClick={onDelete}>
-          Delete room
-        </button>
-      )}
     </div>
   );
 }

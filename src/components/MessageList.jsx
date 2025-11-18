@@ -28,7 +28,7 @@ function MessageList({ messages, onLoadMore, canLoadMore }) {
     <div className="message-list p-4">
       {canLoadMore && (
         <button className="btn btn-outline-light btn-sm w-100 mb-3" onClick={onLoadMore}>
-          Load earlier messages
+          Load 25 earlier messages
         </button>
       )}
       <div className="message-list-scroll" ref={scrollRef} onScroll={handleScroll}>

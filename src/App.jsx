@@ -4,6 +4,7 @@ import RoomPage from "./pages/RoomPage.jsx";
 import GuidePage from "./pages/GuidePage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
 import RoomsPage from "./pages/RoomsPage.jsx";
+import MailPage from "./pages/MailPage.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { AppProvider } from "./context/AppContext.jsx";
 import "./App.css";
@@ -25,6 +26,9 @@ function App() {
                     <NavLink className="nav-link text-light" to="/rooms">
                       Rooms
                     </NavLink>
+                    <NavLink className="nav-link text-light" to="/mail">
+                      Mail
+                    </NavLink>
                     <NavLink className="nav-link text-light" to="/guides">
                       Guides
                     </NavLink>
@@ -45,6 +49,7 @@ function App() {
                 <Route path="/room/:roomId" element={<RoomPage />} />
                 <Route path="/guides" element={<GuidePage />} />
                 <Route path="/rooms" element={<RoomsPage />} />
+                <Route path="/mail" element={<MailPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="*" element={<HomePage />} />
               </Routes>
