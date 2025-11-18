@@ -71,11 +71,11 @@ function HomePage() {
           </div>
         )}
 
-        <div className="row g-4">
-          <div className="col-12 col-lg-6">
+        <div className="row g-4 justify-content-center">
+          <div className="col-12 col-md-6 col-xl-5">
             <CreateRoomForm onCreate={handleCreateRoom} disabled={!isAuthenticated} />
           </div>
-          <div className="col-12 col-lg-6">
+          <div className="col-12 col-md-6 col-xl-5">
             <JoinRoomForm onJoin={handleJoinRoom} />
           </div>
         </div>

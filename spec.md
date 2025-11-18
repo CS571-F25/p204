@@ -97,14 +97,13 @@ User Action → Component Handler → Update State → Save to localStorage → 
 #### **User & Account Model**
 
 - `termrooms_accounts`: `{ id, username, displayName, pinHash, createdAt }`
-- `termrooms_session`: `{ userId, displayName, role }`
-- `termrooms_guest_session`: `{ guestId, nickname }`
+- `termrooms_session`: `{ username, displayName }`
+- Guest nicknames are generated client-side per visit (not persisted today).
 - Roles:
-  - `owner`: room creator with delete privilege
-  - `member`: logged-in participant (non-owner)
-  - `guest`: anonymous participant
+  - `owner`: any authenticated account; permitted to create/delete rooms it owns
+  - `guest`: anonymous participant (local display name only)
 - Permissions summary:
-  - Create/Delete room → owners (registered) only
+  - Create/Delete room → signed-in owners only
   - Messaging / joining → everyone (respecting room password)
   - Rooms cannot be renamed/locked after creation (keep flow simple)
 
@@ -153,14 +152,8 @@ User Action → Component Handler → Update State → Save to localStorage → 
 'termrooms_username' = "JohnDoe" // deprecated in favor of session but retained for quick nickname edits
 'termrooms_recent' = ["abc123", "def456", "ghi789"]
 'termrooms_session' = {
-  userId: "user_123",
-  displayName: "Yazod A.",
-  role: "owner",
-  lastLogin: "2025-11-02T09:00:00Z"
-}
-'termrooms_guest_session' = {
-  guestId: "guest_8392",
-  nickname: "Guest-8392"
+  username: "yazod",
+  displayName: "Yazod A."
 }
 ```
 
@@ -174,20 +167,16 @@ p204-project/
 │   └── vite.svg
 ├── src/
 │   ├── components/          # Reusable UI components
-│   │   ├── Navbar.jsx
 │   │   ├── Terminal.jsx
 │   │   ├── CommandInput.jsx
 │   │   ├── TerminalOutput.jsx
 │   │   ├── MessageList.jsx
 │   │   ├── MessageItem.jsx
 │   │   ├── UserList.jsx
-│   │   ├── UserItem.jsx
-│   │   ├── RoomCard.jsx
+│   │   ├── RoomInfoCard.jsx
 │   │   ├── CreateRoomForm.jsx
 │   │   ├── JoinRoomForm.jsx
-│   │   ├── RoomInfoCard.jsx
 │   │   ├── HelpPanel.jsx
-│   │   ├── PasswordModal.jsx
 │   │   └── AuthForm.jsx
 │   ├── pages/               # Page-level components (routes)
 │   │   ├── HomePage.jsx
@@ -198,10 +187,8 @@ p204-project/
 │   │   ├── AppContext.jsx
 │   │   └── AuthContext.jsx
 │   ├── utils/               # Helper functions
-│   │   ├── storage.js      # localStorage helpers
-│   │   ├── commands.js     # Command parsing/handling
-│   │   └── roomUtils.js    # Room management utilities
-│   ├── App.jsx              # Main app component with routing
+│   │   └── storage.js       # localStorage helpers
+│   ├── App.jsx              # Main app component with routing/nav
 │   ├── App.css              # App-specific styles
 │   ├── main.jsx             # Entry point
 │   └── index.css            # Global styles
@@ -228,9 +215,8 @@ A component is a **reusable piece of UI** that:
 
 1. **HomePage** (`src/pages/HomePage.jsx`)
    - Route: `/`
-   - Purpose: Dashboard for creating/joining rooms
-   - Contains: CreateRoomForm, JoinRoomForm, RoomCard list, HelpPanel
-   - Optional: Username input/setting form (if username not set)
+   - Purpose: Dashboard for creating/joining rooms plus quick help
+   - Contains: CreateRoomForm, JoinRoomForm, HelpPanel, status alert
 
 2. **RoomPage** (`src/pages/RoomPage.jsx`)
    - Route: `/room/:roomId`
@@ -245,89 +231,58 @@ A component is a **reusable piece of UI** that:
    - Provides static content required for the "3+ pages" milestone while reinforcing the terminal metaphor
 
 4. **AuthPage** (`src/pages/AuthPage.jsx`)
-   - Route: `/auth` (Tabs for Sign Up / Log In)
-   - Purpose: Manage account creation, login, and guest entry
-   - Contains: SignUpForm, LoginForm, GuestEntryCard
-   - Uses React Bootstrap tabs + forms, integrates with AuthContext
+   - Route: `/auth`
+   - Purpose: Manage account creation and login outside the terminal
+   - Contains: descriptive hero card + `AuthForm` (single component toggles login/sign-up)
+   - Uses React Bootstrap layout, integrates with AuthContext
 
-### **Reusable Components** (12+ components)
+### **Reusable Components** (current count: 11 core components)
 
-#### **Navigation & Layout**
-1. **Navbar** (`src/components/Navbar.jsx`)
-   - Navigation bar with links to Home and current room
-   - Shows username if set
-   - Required by project spec
+The project now focuses on the components that actually ship in `src/components/`. Navigation lives in `App.jsx` (navbar + `IdentityBadge`) instead of a standalone component, and features like Room cards or password modals were deferred for scope control.
 
 #### **Terminal Components**
-2. **Terminal** (`src/components/Terminal.jsx`)
-   - Main terminal container
-   - Combines CommandInput and TerminalOutput
-   - Orchestrates command execution by calling command parser/executor from `commands.js`
-   - Shows contextual feedback for each command
+1. **Terminal** (`src/components/Terminal.jsx`)
+   - Wraps `TerminalOutput` and `CommandInput`
+   - Handles parsing/executing commands directly (no separate `commands.js`)
+   - Bridges terminal-only actions with Room/Home navigation
 
-3. **CommandInput** (`src/components/CommandInput.jsx`)
-   - Input field for typing commands
-   - Handles Enter key, command history (Up/Down arrows)
-   - Auto-focus on mount
+2. **CommandInput** (`src/components/CommandInput.jsx`)
+   - Controlled input for `/commands`
+   - Submits on Enter and keeps local history buffer for arrow-key recall
 
-4. **TerminalOutput** (`src/components/TerminalOutput.jsx`)
-   - Displays the last few command outputs (success/error/info)
-   - Scrollable area capped to ~20 entries
-   - Clearing output does not affect chat messages
+3. **TerminalOutput** (`src/components/TerminalOutput.jsx`)
+   - Scrollable feed of recent command responses
+   - Clears independently from chat history
 
-#### **Message Components**
-5. **MessageList** (`src/components/MessageList.jsx`)
-   - Container for displaying all messages in a room
-   - Scrollable, auto-scrolls to bottom
-   - Displays messages for the current room (filtered by roomId prop)
+#### **Messaging Components**
+4. **MessageList** (`src/components/MessageList.jsx`)
+   - Displays current room’s messages and exposes “Load earlier” button when applicable
 
-6. **MessageItem** (`src/components/MessageItem.jsx`)
-   - Individual message display
-   - Shows username (or "Anonymous"), text, timestamp
-   - Different styling based on message type (message/command/system)
-   - Receives message object with user, text, timestamp, type fields
+5. **MessageItem** (`src/components/MessageItem.jsx`)
+   - Renders individual chat entries with user name, timestamp, and type styling
 
-#### **User Components**
-7. **UserList** (`src/components/UserList.jsx`)
-   - Sidebar showing active users in room
-   - Currently shows current user (single-session)
+#### **Room / Participant Components**
+6. **UserList** (`src/components/UserList.jsx`)
+   - Placeholder roster for future multi-user awareness; currently lists owner + self
 
-8. **UserItem** (`src/components/UserItem.jsx`)
-   - Individual user display
-   - Shows username, status indicator
+7. **RoomInfoCard** (`src/components/RoomInfoCard.jsx`)
+   - Shows room metadata (ID, owner, timestamps, password flag)
+   - Surfaces a delete button only when the viewer owns the room
 
-#### **Room Management Components**
-9. **RoomCard** (`src/components/RoomCard.jsx`)
-   - Card displaying room info on homepage
-   - Shows room name, ID, message count
-   - Join shortcut button
+8. **CreateRoomForm** (`src/components/CreateRoomForm.jsx`)
+   - Handles room creation (name + optional password) and enforces auth requirement
 
-10. **RoomInfoCard** (`src/components/RoomInfoCard.jsx`)
-    - Displays active room metadata (owner, created date, password status)
-    - Includes delete button for owner and leave button for others
-
-11. **CreateRoomForm** (`src/components/CreateRoomForm.jsx`)
-    - Form for creating new room (name + optional password)
-    - Validates auth status and input
-
-12. **JoinRoomForm** (`src/components/JoinRoomForm.jsx`)
-    - Form for joining existing room (ID + optional password)
-    - Validates room existence before navigation
-
-13. **PasswordModal** (`src/components/PasswordModal.jsx`)
-    - Modal prompt for entering room password when required
+9. **JoinRoomForm** (`src/components/JoinRoomForm.jsx`)
+   - Allows joining by room ID plus optional password field
 
 #### **Auth & Support Components**
-14. **AuthForm** (`src/components/AuthForm.jsx`)
-    - Single component that toggles between sign up / log in modes
-    - Handles username, PIN, and display name inputs
+10. **AuthForm** (`src/components/AuthForm.jsx`)
+    - Toggleable sign-up / log-in form (username, PIN, display name)
 
-15. **HelpPanel** (`src/components/HelpPanel.jsx`)
-    - Displays available commands and usage
-    - Collapsible accordion or modal
-    - Links to GuidePage anchors
+11. **HelpPanel** (`src/components/HelpPanel.jsx`)
+    - Accordion-based quick command reference that mirrors the Guide page
 
-**Total: 15 components** (comfortably exceeds 12 requirement)
+> **Note:** Additional components (Room cards, password modal, etc.) are intentionally deferred until after the check-in milestone so the implementation matches the deployed feature set.
 
 ---
 
@@ -346,15 +301,15 @@ Commands use simple argument syntax (no flags). The single terminal input is the
    - Updates display name (persists for logged-in users; temporary for guests)
 
 2. **`/whoami`**
-   - Shows current identity and role
+   - Shows current identity and role (“owner” when authenticated, “guest” otherwise)
 
 #### Room Commands
 3. **`/create [room-name] [password]`** *(registered only)*
    - Generates unique 6-character ID and optional password
    - Sets caller as owner
 
-4. **`/join [room-id-or-name] [password]`**
-   - Joins by ID; if a name is provided, resolves to the most recent matching room
+4. **`/join [room-id] [password]`**
+   - Joins by exact room ID (forms provide the friendlier path for newcomers)
 
 5. **`/leave`**
    - Leaves the current room and returns to Home
@@ -363,26 +318,19 @@ Commands use simple argument syntax (no flags). The single terminal input is the
    - Immediately removes the room and its messages from localStorage
 
 7. **`/rooms`**
-    - Lists rooms you own plus the last few rooms you joined
+    - Lists rooms you created (pulled from localStorage)
 
 #### Messaging & Support Commands
 8. **`/msg [message]`** or plain text
-    - Broadcasts to current room
+    - Broadcasts to current room; plain text without `/` is treated the same
 
-9. **`/users`**
-    - Lists active participants in the current room
+9. **`/help`**
+    - Prints the inline cheat sheet (no topic filtering yet)
 
-10. **`/help [topic]`**
-    - Command reference (topics: auth, rooms, chat)
+10. **`/guide`**
+    - Navigates to the Guide page for the full documentation
 
-11. **`/guide [section]`**
-    - Opens GuidePage to requested section
-
-12. **`/history [count]`**
-    - Loads additional chat messages (default 25, max 100)
-    - Same effect as pressing the “Load 25 earlier messages” button
-
-13. **`/clear`**
+11. **`/clear`**
     - Clears terminal output locally (does not delete chat history)
 
 ### **Messaging Model**
@@ -396,8 +344,7 @@ Commands use simple argument syntax (no flags). The single terminal input is the
 - **Message Loading**:
   - When you enter a room, the latest 50 messages load instantly from localStorage and render in the chat list.
   - A “Load 25 earlier messages” button (label includes the count) appears when older messages exist; each press loads another 25 until history is exhausted.
-  - The `/history [count]` command mirrors the button but lets the user specify the count (default 25, capped at 100 per call).
-  - Terminal output only shows command results; chat history stays separate.
+  - Terminal output only shows command results; chat history stays separate. The terminal simply reminds users to use the button when they ask for `/history`.
 
 ### **Message Types**
 
@@ -490,7 +437,7 @@ This spec keeps the design ambitious enough to be portfolio-ready but scoped to 
 - [ ] Build Terminal component
 - [ ] Build CommandInput component
 - [ ] Build TerminalOutput component
-- [ ] Implement command parser (commands.js)
+- [ ] Implement command handler logic inside `Terminal` (commands kept inline; standalone `commands.js` deferred)
 - [ ] Implement `/create` command
 - [ ] Implement `/join` command
 - [ ] Implement `/msg` command
@@ -514,13 +461,13 @@ This spec keeps the design ambitious enough to be portfolio-ready but scoped to 
 
 **Goal**: Complete features, accessibility, polish
 
-- [ ] Implement remaining commands (/users, /help, /guide, /history, /clear)
-- [ ] Build RoomCard component
-- [ ] Build RoomInfoCard component
-- [ ] Build UserList and UserItem components
-- [ ] Build HelpPanel component
-- [ ] Build PasswordModal component
-- [ ] Build AuthForm component (toggle login/sign-up)
+- [ ] Stretch commands (future): `/users`, `/history`, richer `/help` topics
+- [ ] Build RoomCard component (future backlog)
+- [ ] Build RoomInfoCard component (✅ core version done; polish iteration pending)
+- [ ] Build UserList component (✅ basic placeholder done; needs live presence later)
+- [ ] Build HelpPanel component (✅)
+- [ ] PasswordModal (future backlog)
+- [ ] AuthForm (✅ single toggle component delivered)
 - [ ] Harden auth flows (PIN hash, session persistence, logout everywhere)
 - [ ] Add password protection
 - [ ] Improve visual design (terminal aesthetic)
@@ -574,14 +521,14 @@ Follow these numbered steps sequentially. After completing a step, mark it done 
    - Keep `/setname` and `/whoami` commands for quick identity changes/inspections.
 
 6. **Room Lifecycle**
-   - Build `CreateRoomForm`, `JoinRoomForm`, `RoomCard`.
+   - Build `CreateRoomForm` and `JoinRoomForm`.
    - Implement `/create`, `/join`, `/leave`, `/rooms`, `/delete`.
-   - Add `RoomInfoCard` showing owner info + delete button (owner only).
+   - Add `RoomInfoCard` showing owner info + delete button (owner only). (RoomCard backlog item optional.)
 
 7. **Messaging**
    - Build `MessageList`, `MessageItem`, `UserList`.
-   - Implement `/msg`, `/users`.
-   - Load last 50 messages on room entry; add “Load 25 earlier messages” button and `/history [count]`.
+   - Implement `/msg` (plain text fallback). `/users` command remains a stretch goal once real-time presence exists.
+   - Load last 50 messages on room entry; add “Load 25 earlier messages” button (UI-only for now; `/history` command deferred).
 
 8. **Guide & Help Content**
    - Flesh out `GuidePage` (onboarding steps, command glossary, accessibility checklist).
@@ -742,7 +689,9 @@ export function setUsername(username) {
 }
 ```
 
-### **commands.js** - Command Parser
+### **commands.js** (future extraction) - Command Parser
+
+> _Current implementation keeps parsing/execution logic inside `Terminal.jsx`. The sketch below remains as a reference if we later extract it into its own module._
 
 ```javascript
 export function parseCommand(input) {
@@ -758,7 +707,9 @@ export function executeCommand(command, args, context) {
 }
 ```
 
-### **roomUtils.js** - Room Utilities
+### **roomUtils.js** (future extraction) - Room Utilities
+
+> _Room helpers such as ID generation already live in `storage.js`. This section documents how they could be split out if the module grows._
 
 ```javascript
 export function generateRoomId() {

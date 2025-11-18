@@ -32,7 +32,7 @@ function GuidePage() {
 
           <div className="mb-5">
             <h2 className="h4">Command Glossary</h2>
-                <div className="row g-3">
+                <div className="row g-2">
                   {COMMANDS.map((item) => (
                     <div key={item.cmd} className="col-12 col-md-6">
                       <div className="guide-card h-100">

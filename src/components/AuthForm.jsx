@@ -83,7 +83,7 @@ function AuthForm({ onLogin, onSignup }) {
           <input
             id="username"
             name="username"
-            className="form-control bg-dark text-light border-secondary"
+            className="form-control"
             value={formState.username}
             onChange={handleInputChange}
             autoComplete="username"
@@ -100,7 +100,7 @@ function AuthForm({ onLogin, onSignup }) {
             type="password"
             pattern="\d{6}"
             maxLength={6}
-            className="form-control bg-dark text-light border-secondary"
+            className="form-control"
             value={formState.pin}
             onChange={handleInputChange}
             autoComplete={isSignup ? "new-password" : "current-password"}
@@ -115,7 +115,7 @@ function AuthForm({ onLogin, onSignup }) {
             <input
               id="displayName"
               name="displayName"
-              className="form-control bg-dark text-light border-secondary"
+              className="form-control"
               value={formState.displayName}
               onChange={handleInputChange}
               required
@@ -127,7 +127,7 @@ function AuthForm({ onLogin, onSignup }) {
           {status.message}
         </div>
 
-        <button type="submit" className="btn btn-primary-glow w-100 btn-lg">
+        <button type="submit" className="btn btn-primary-glow w-100">
           {isSignup ? "Create Account" : "Sign In"}
         </button>
       </form>

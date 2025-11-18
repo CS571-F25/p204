@@ -18,6 +18,12 @@ const HELP_TEXT = [
   " /guide               Open the guide page",
   " /whoami              Show current identity",
   " /setname NAME        Change your display name",
+  " /create NAME [PASS]  Create a new room (signed-in only)",
+  " /join ID [PASS]      Join a room by ID",
+  " /leave               Leave the current room",
+  " /delete ID           Delete a room you own",
+  " /rooms               List rooms you created",
+  " /msg TEXT            Send chat to the room",
   " /clear               Clear terminal output",
 ];
 

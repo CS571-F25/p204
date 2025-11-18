@@ -7,52 +7,19 @@ const QUICK_COMMANDS = [
   { cmd: "/clear", desc: "Clear terminal output." },
 ];
 
-const SECTIONS = [
-  {
-    title: "Keyboard Favorites",
-    items: QUICK_COMMANDS.slice(0, 3),
-  },
-  {
-    title: "Identity & Cleanup",
-    items: QUICK_COMMANDS.slice(3),
-  },
-];
-
 function HelpPanel() {
   return (
-    <div className="glass-panel p-4 text-light mt-4">
-      <h2 className="h4 mb-3">Need a refresher?</h2>
-      <div className="accordion" id="helpAccordion">
-        {SECTIONS.map((section, index) => (
-          <div className="accordion-item bg-transparent border-secondary" key={section.title}>
-            <h2 className="accordion-header" id={`heading-${index}`}>
-              <button
-                className="accordion-button bg-transparent text-light"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target={`#collapse-${index}`}
-                aria-expanded={index === 0}
-                aria-controls={`collapse-${index}`}
-              >
-                {section.title}
-              </button>
-            </h2>
-            <div
-              id={`collapse-${index}`}
-              className={`accordion-collapse collapse ${index === 0 ? "show" : ""}`}
-              aria-labelledby={`heading-${index}`}
-              data-bs-parent="#helpAccordion"
-            >
-              <div className="accordion-body">
-                <ul className="list-unstyled d-flex flex-column gap-3 mb-0">
-                  {section.items.map((item) => (
-                    <li key={item.cmd} className="help-card">
-                      <code>{item.cmd}</code>
-                      <p className="mb-0 text-muted small">{item.desc}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+    <div className="quick-commands mt-5">
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <h2 className="h5 mb-0 text-light">Need a refresher?</h2>
+        <p className="mb-0 text-muted small">Type any of these shortcuts in the terminal.</p>
+      </div>
+      <div className="row g-2">
+        {QUICK_COMMANDS.map((item) => (
+          <div key={item.cmd} className="col-12 col-md-6 col-xl-4">
+            <div className="command-chip">
+              <code>{item.cmd}</code>
+              <span>{item.desc}</span>
             </div>
           </div>
         ))}
