@@ -4,6 +4,8 @@ const QUICK_COMMANDS = [
   { cmd: "/setname New Name", desc: "Update your display name on the fly." },
   { cmd: "/leave", desc: "Return to the home page." },
   { cmd: "/delete room-id", desc: "Delete a room you own." },
+  { cmd: "/recent", desc: "List rooms you’ve opened recently." },
+  { cmd: "/relay room-id text", desc: "Drop a message into another room." },
   { cmd: "/clear", desc: "Clear terminal output." },
   { cmd: "Plain text", desc: "Just type to chat with everyone in the room." },
 ];

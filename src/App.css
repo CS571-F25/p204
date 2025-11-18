@@ -444,10 +444,11 @@ p {
   font-family: "JetBrains Mono", "Courier New", monospace;
 }
 
-.terminal-input-shell .prompt {
+.terminal-prompt {
   color: #38bdf8;
   font-family: "JetBrains Mono", "Courier New", monospace;
   font-weight: 600;
+  margin-right: 0.5rem;
 }
 
 .terminal-input {
@@ -458,6 +459,11 @@ p {
   font-size: 1rem;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   outline: none;
+}
+
+.terminal-input:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .terminal-input::placeholder {

@@ -35,7 +35,7 @@
 
 ### **How It Works**
 
-1. **Room Creation**: User creates a room with a name (optional password)
+1. **Room Creation**: Signed-in users create rooms from the Rooms page with a name (optional password)
 2. **Room Storage**: Room data stored in localStorage with unique ID
 3. **Room Joining**: User can join any room by entering its ID
 4. **Command Interface**: Terminal-style input processes commands
@@ -46,7 +46,7 @@
 
 ## Vision & Proposal Alignment
 
-TermRooms reimagines real-time collaboration through a terminal-inspired UI. Forms on the Home page handle structured actions like creating or joining rooms, while the in-room terminal focuses on real-time collaboration: chatting, renaming yourself, listing your rooms, and leaving/deleting sessions. Account creation and login happen through the dedicated `/auth` page so the terminal can remain focused on collaboration tasks. The surrounding layout keeps things simple: the primary terminal sits beside contextual cards for room info and guides. Each room surfaces ownership metadata, optional passwords, and persistent history, while the homepage doubles as a command center with onboarding content. The experience stays minimal and fast—mirroring the original proposal—yet still meets the CS571 interactive requirements by featuring multiple pages, routed views, and meaningful components.
+TermRooms reimagines real-time collaboration through a terminal-inspired UI. The dedicated Rooms page handles structured actions like creating or joining rooms, while the in-room terminal focuses on real-time collaboration: chatting, renaming yourself, and leaving/deleting sessions. Account creation and login happen through the `/auth` page so the terminal can remain focused on collaboration tasks. The surrounding layout keeps things simple: the primary terminal sits beside contextual cards for room info and guides. Each room surfaces ownership metadata, optional passwords, and persistent history, while the homepage doubles as a command center with onboarding content. The experience stays minimal and fast—mirroring the original proposal—yet still meets the CS571 interactive requirements by featuring multiple pages, routed views, and meaningful components.
 
 ---
 
@@ -82,7 +82,7 @@ TermRooms reimagines real-time collaboration through a terminal-inspired UI. For
 1. **Local Component State**: Use `useState` for component-specific data
 2. **Context API**: 
    - `AuthContext` for current session, role, and auth actions
-   - `AppContext` for active room panels, theme, global modals
+   - `AppContext` for tracking the active room ID and terminal output buffer
 3. **localStorage**: Persist rooms, messages, user preferences, accounts
 4. **URL Parameters**: Room ID in route (`/room/:roomId`)
 
@@ -220,8 +220,8 @@ A component is a **reusable piece of UI** that:
 
 2. **RoomsPage** (`src/pages/RoomsPage.jsx`)
    - Route: `/rooms`
-   - Purpose: Directory of rooms the signed-in user has created
-   - Contains: grid of room cards with IDs/password indicators and quick links
+   - Purpose: Hub for creating rooms, joining by ID, and listing owned/recent rooms
+   - Contains: Create/Join forms plus lists of owned and recently opened rooms
 
 3. **RoomPage** (`src/pages/RoomPage.jsx`)
    - Route: `/room/:roomId`
@@ -232,7 +232,7 @@ A component is a **reusable piece of UI** that:
 4. **GuidePage** (`src/pages/GuidePage.jsx`)
    - Route: `/guides`
    - Purpose: Learning hub with onboarding content, command reference, and design rationale
-   - Contains: Interactive walkthrough, command glossary, accessibility checklist preview
+   - Contains: Interactive walkthrough plus a command glossary mirroring the in-app cheatsheet
    - Provides static content required for the "3+ pages" milestone while reinforcing the terminal metaphor
 
 5. **AuthPage** (`src/pages/AuthPage.jsx`)
@@ -252,8 +252,8 @@ The project now focuses on the components that actually ship in `src/components/
    - Bridges terminal-only actions with Room/Home navigation
 
 2. **CommandInput** (`src/components/CommandInput.jsx`)
-   - Controlled input for `/commands`
-   - Submits on Enter and keeps local history buffer for arrow-key recall
+   - Controlled input for slash commands or plain text
+   - Submits on Enter and clears on Escape (no history buffer yet)
 
 3. **TerminalOutput** (`src/components/TerminalOutput.jsx`)
    - Scrollable feed of recent command responses
@@ -285,7 +285,7 @@ The project now focuses on the components that actually ship in `src/components/
     - Toggleable sign-up / log-in form (username, PIN, display name)
 
 11. **HelpPanel** (`src/components/HelpPanel.jsx`)
-    - Accordion-based quick command reference that mirrors the Guide page
+    - Static quick command reference that mirrors the Guide page
 
 > **Note:** Additional components (Room cards, password modal, etc.) are intentionally deferred until after the check-in milestone so the implementation matches the deployed feature set.
 
@@ -295,9 +295,9 @@ The project now focuses on the components that actually ship in `src/components/
 
 ### **Core Commands**
 
-Commands are parsed from user input starting with `/`. Structured actions (create/join) happen through the Home page forms, while the in-room terminal handles collaboration and room-management commands:
-- **Forms on HomePage**: Primary method for creating or joining rooms via CreateRoomForm and JoinRoomForm
-- **Terminal in RoomPage**: Chat, rename, leave, list rooms, delete rooms, clear output
+Commands are parsed from user input starting with `/`. Structured actions (create/join) happen through the Rooms page forms, while the in-room terminal handles collaboration commands:
+- **Forms on RoomsPage**: Primary method for creating or joining rooms via CreateRoomForm and JoinRoomForm
+- **Terminal in RoomPage**: Chat, rename, leave, delete rooms, clear output
 
 Commands use simple argument syntax (no flags). The single terminal input is the canonical way to interact, with forms providing optional fallbacks. Authentication is handled outside the terminal, so the command list starts with room actions.
 
@@ -315,21 +315,24 @@ Commands use simple argument syntax (no flags). The single terminal input is the
 4. **`/delete [room-id]`** *(owner only)*
    - Immediately removes the room and its messages from localStorage
 
-5. **`/rooms`**
-    - Lists rooms you created (pulled from localStorage)
-
 #### Messaging & Support Commands
-6. **`/msg [message]`** or plain text
-    - Broadcasts to current room; plain text without `/` is treated the same
+5. **Plain text (no leading slash)**
+    - Broadcasts to the current room; anything that doesn’t start with `/` is treated as chat
 
-7. **`/help`**
+6. **`/help`**
     - Prints the inline cheat sheet (no topic filtering yet)
 
-8. **`/guide`**
+7. **`/guide`**
     - Navigates to the Guide page for the full documentation
 
-9. **`/clear`**
+8. **`/clear`**
     - Clears terminal output locally (does not delete chat history)
+
+9. **`/recent`**
+    - Lists the last few rooms you opened, based on the recents list stored in `localStorage`
+
+10. **`/relay room-id message`**
+    - Injects a chat message into another room’s history without leaving your current room
 
 ### **Messaging Model**
 
@@ -342,33 +345,18 @@ Commands use simple argument syntax (no flags). The single terminal input is the
 - **Message Loading**:
   - When you enter a room, the latest 50 messages load instantly from localStorage and render in the chat list.
   - A “Load 25 earlier messages” button (label includes the count) appears when older messages exist; each press loads another 25 until history is exhausted.
-  - Terminal output only shows command results; chat history stays separate. The terminal simply reminds users to use the button when they ask for `/history`.
+  - Terminal output only shows command results; chat history stays separate so the terminal stays lightweight.
 
 ### **Message Types**
 
-Messages have a `type` field that determines their purpose and styling:
-
-- **`"message"`**: User messages sent via `/msg` or plain text input
-  - Broadcast to the entire room (no specific recipient)
-  - Displayed in message list with username and timestamp
-  - Normal message styling
-  
-- **`"command"`**: Command execution outputs
-  - Examples: `/help` output, `/users` output, command confirmations
-  - Displayed in terminal/command history
-  - May have different styling (monospace, terminal colors)
-  
-- **`"system"`**: System notifications and events
-  - Examples: "Room created", "User joined room", "Password incorrect", "Name changed"
-  - Displayed in both message list and terminal
-  - Typically styled differently (info/warning/error colors)
+Messages saved in `localStorage` currently use a single `type` of `"message"` because only chat content is persisted. Terminal feedback (like `/help` output) stays in the transient terminal buffer instead of being written to history. The schema keeps the `type` field so future iterations can add `"system"` or `"command"` entries, but today only user chat bubbles are stored.
 
 ### **Room Features**
 
 - **Room Creation**: Name + optional password
 - **Room Joining**: By ID + password verification
-- **Message Persistence**: Messages saved per room with all types
-- **Room List**: View all created rooms on homepage
+- **Message Persistence**: Messages saved per room as chat bubbles
+- **Room List**: View all created rooms on the Rooms page
 - **Recent Rooms**: Track recently visited rooms
 - **Single Terminal Focus**: One primary terminal per page; users switch rooms via commands or cards instead of multiple floating panels.
 - **Activity Indicators**: Room info card shows owner, creation time, last activity, and whether a password exists.
@@ -377,9 +365,9 @@ Messages have a `type` field that determines their purpose and styling:
   - Ownership is displayed on RoomInfoCard and GuidePage.
   - Guests attempting owner-only commands receive actionable errors with guidance to register.
 - **Room Persistence & Limits**:
-  - Rooms persist in localStorage until deleted by owner or auto-archived after 14 days of inactivity.
+  - Rooms persist in localStorage until the owner deletes them.
   - Hard cap of 25 rooms per installation to prevent unbounded storage.
-  - Archived rooms remain visible in history but cannot be joined unless reactivated by owner.
+  - The recents list keeps the 10 most recently opened room IDs for quick access.
 
 ---
 
@@ -436,7 +424,7 @@ This spec keeps the design ambitious enough to be portfolio-ready but scoped to 
 - [ ] Build CommandInput component
 - [ ] Build TerminalOutput component
 - [ ] Implement command handler logic inside `Terminal` (commands kept inline; standalone `commands.js` deferred)
-- [ ] Wire `/msg` command
+- [ ] Wire plain-text chat handling in `Terminal`
 - [ ] Build MessageList component
 - [ ] Build MessageItem component
 - [ ] Implement room storage utilities
@@ -518,16 +506,16 @@ Follow these numbered steps sequentially. After completing a step, mark it done 
 
 6. **Room Lifecycle**
    - Build `CreateRoomForm` and `JoinRoomForm`.
-   - Implement `/leave`, `/rooms`, `/delete`.
+   - Implement `/leave` and `/delete`.
    - Add `RoomInfoCard` showing owner info + delete button (owner only). (RoomCard backlog item optional.)
 
 7. **Messaging**
    - Build `MessageList`, `MessageItem`, `UserList`.
-   - Implement `/msg` (plain text fallback). `/users` command remains a stretch goal once real-time presence exists.
+   - Ensure plain-text chat flow works end-to-end (non-slash input posts to the room).
    - Load last 50 messages on room entry; add “Load 25 earlier messages” button (UI-only for now; `/history` command deferred).
 
 8. **Guide & Help Content**
-   - Flesh out `GuidePage` (onboarding steps, command glossary, accessibility checklist).
+   - Flesh out `GuidePage` (onboarding steps + command glossary).
    - Connect `HelpPanel` to the same content.
 
 9. **Styling & Accessibility**
@@ -693,7 +681,7 @@ export function setUsername(username) {
 export function parseCommand(input) {
   // Parse "/command arg1 arg2" (simple syntax, no flags)
   // Returns: { command, args }
-  // Example: "/msg hello world" → { command: "msg", args: ["hello", "world"] }
+  // Example: "/setname New Name" → { command: "setname", args: ["New", "Name"] }
 }
 
 export function executeCommand(command, args, context) {
@@ -815,7 +803,7 @@ export function formatTimestamp(date) {
 2. **Create utility functions** - Build storage.js, commands.js, roomUtils.js
 3. **Set up routing** - Configure App.jsx with HashRouter
 4. **Build Navbar** - First component
-5. **Build HomePage** - Create/join forms
+5. **Build RoomsPage** - Create/join forms hub
 6. **Build RoomPage** - Terminal interface
 7. **Implement commands** - One at a time
 8. **Add styling** - Terminal theme with Bootstrap

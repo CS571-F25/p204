@@ -3,7 +3,7 @@ import CommandInput from "./CommandInput.jsx";
 import TerminalOutput from "./TerminalOutput.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getRoom, getRooms, deleteRoom } from "../utils/storage.js";
+import { getRoom, deleteRoom, getRecents, getMessages, saveMessages, touchRoom } from "../utils/storage.js";
 
 const HELP_TEXT = [
   "Available commands:",
@@ -13,6 +13,8 @@ const HELP_TEXT = [
   " /setname NAME        Change your display name",
   " /leave               Leave the current room",
   " /delete ID           Delete a room you own",
+  " /recent              List recently opened rooms",
+  " /relay ID TEXT       Send a message into another room",
   " /clear               Clear terminal output",
   " Plain text           Send chat to the room",
 ];
@@ -70,6 +72,12 @@ function Terminal({ onChat, variant = "standalone", onFeedback }) {
       case "delete":
         handleDeleteCommand(args, { print, navigate, identity });
         break;
+      case "recent":
+        handleRecentCommand(print);
+        break;
+      case "relay":
+        handleRelayCommand(args, { identity, print });
+        break;
       case "clear":
         clearTerminal();
         break;
@@ -108,6 +116,55 @@ function handleDeleteCommand(args, { print, navigate, identity }) {
   navigate("/");
 }
 
-function handleRoomsCommand(print) {}
+function handleRecentCommand(print) {
+  const recents = getRecents();
+  if (!recents.length) {
+    print("No recent rooms yet. Join a room to get started.", "info");
+    return;
+  }
+
+  print("Recently opened rooms:", "info");
+  recents.forEach((id, index) => {
+    const room = getRoom(id);
+    if (room) {
+      print(` ${index + 1}. ${room.name} (${room.id})`, "light");
+    } else {
+      print(` ${index + 1}. ${id} (deleted)`, "warning");
+    }
+  });
+}
+
+function handleRelayCommand(args, { identity, print }) {
+  if (args.length < 2) {
+    print("Usage: /relay room-id message", "warning");
+    return;
+  }
+
+  const [targetId, ...bodyParts] = args;
+  const text = bodyParts.join(" ").trim();
+  if (!text) {
+    print("Message cannot be empty.", "warning");
+    return;
+  }
+
+  const room = getRoom(targetId);
+  if (!room) {
+    print("Room not found.", "danger");
+    return;
+  }
+
+  const history = getMessages(room.id);
+  const relayMessage = {
+    id: crypto.randomUUID(),
+    user: `${identity.displayName} (relay)`,
+    text,
+    type: "message",
+    timestamp: new Date().toISOString(),
+  };
+
+  saveMessages(room.id, [...history, relayMessage]);
+  touchRoom(room.id);
+  print(`Message relayed to ${room.name}.`, "success");
+}
 
 
