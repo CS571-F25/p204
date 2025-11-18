@@ -21,7 +21,7 @@ const HELP_TEXT = [
   " /clear               Clear terminal output",
 ];
 
-function Terminal() {
+function Terminal({ onChat }) {
   const navigate = useNavigate();
   const { identity, isAuthenticated, setDisplayName } = useAuth();
   const { pushTerminalMessage, clearTerminal, selectRoom } = useAppContext();
@@ -33,7 +33,12 @@ function Terminal() {
     if (!input) return;
 
     if (!input.startsWith("/")) {
-      print(`Chat coming soon! For now, try /help.`, "warning");
+      if (onChat) {
+        onChat(input);
+        print("Message sent.", "success");
+      } else {
+        print(`Chat coming soon! For now, try /help.`, "warning");
+      }
       return;
     }
 
@@ -59,6 +64,16 @@ function Terminal() {
           const newName = args.join(" ");
           setDisplayName(newName);
           print(`Display name updated to ${newName}`, "success");
+        }
+        break;
+      case "msg":
+        if (!onChat) {
+          print("Messaging is not available yet.", "warning");
+        } else if (!args.length) {
+          print("Usage: /msg your message text", "warning");
+        } else {
+          onChat(args.join(" "));
+          print("Message sent.", "success");
         }
         break;
       case "create":

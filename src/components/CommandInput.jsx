@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function CommandInput({ onSubmit }) {
   const [value, setValue] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -23,6 +28,12 @@ function CommandInput({ onSubmit }) {
         value={value}
         onChange={(event) => setValue(event.target.value)}
         autoComplete="off"
+        ref={inputRef}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            setValue("");
+          }
+        }}
       />
       <button className="btn btn-light btn-lg" type="submit">
         Enter
