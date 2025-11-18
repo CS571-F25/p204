@@ -3,6 +3,14 @@ import CommandInput from "./CommandInput.jsx";
 import TerminalOutput from "./TerminalOutput.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import {
+  createRoomRecord,
+  getRoom,
+  getRooms,
+  recordRecentRoom,
+  roomPasswordMatches,
+  deleteRoom,
+} from "../utils/storage.js";
 
 const HELP_TEXT = [
   "Available commands:",
@@ -15,8 +23,8 @@ const HELP_TEXT = [
 
 function Terminal() {
   const navigate = useNavigate();
-  const { identity, setDisplayName } = useAuth();
-  const { pushTerminalMessage, clearTerminal } = useAppContext();
+  const { identity, isAuthenticated, setDisplayName } = useAuth();
+  const { pushTerminalMessage, clearTerminal, selectRoom } = useAppContext();
 
   const print = (text, variant = "light") => pushTerminalMessage({ text, variant });
 
@@ -53,6 +61,26 @@ function Terminal() {
           print(`Display name updated to ${newName}`, "success");
         }
         break;
+      case "create":
+        handleCreateCommand(args, { print, navigate, selectRoom, identity, isAuthenticated });
+        break;
+      case "join":
+        handleJoinCommand(args, { print, navigate, selectRoom });
+        break;
+      case "leave":
+        navigate("/");
+        selectRoom(null);
+        print("Left the room.", "success");
+        break;
+      case "delete":
+        handleDeleteCommand(args, { print, navigate, identity });
+        break;
+      case "rooms":
+        handleRoomsCommand(print);
+        break;
+      case "history":
+        print("Chat loading via /history not yet implemented in terminal. Use the button on page.", "warning");
+        break;
       case "clear":
         clearTerminal();
         break;
@@ -70,4 +98,86 @@ function Terminal() {
 }
 
 export default Terminal;
+
+function handleCreateCommand(args, { print, navigate, selectRoom, identity, isAuthenticated }) {
+  if (!args.length) {
+    print("Usage: /create room-name [password]", "warning");
+    return;
+  }
+  const name = args[0];
+  const password = args[1] ?? "";
+
+  try {
+    if (!isAuthenticated || !identity.username) {
+      throw new Error("You must be signed in to create rooms.");
+    }
+    const room = createRoomRecord({
+      name,
+      password,
+      ownerUsername: identity.username,
+      ownerDisplayName: identity.displayName,
+    });
+    print(`Room "${room.name}" created with ID ${room.id}`, "success");
+    selectRoom(room.id);
+    navigate(`/room/${room.id}`);
+  } catch (error) {
+    print(error.message, "danger");
+  }
+}
+
+function handleJoinCommand(args, { print, navigate, selectRoom }) {
+  if (!args.length) {
+    print("Usage: /join room-id [password]", "warning");
+    return;
+  }
+  const roomId = args[0].toLowerCase();
+  const password = args[1] ?? "";
+  const room = getRoom(roomId);
+  if (!room) {
+    print(`Room ${roomId} not found.`, "danger");
+    return;
+  }
+  if (!roomPasswordMatches(room, password)) {
+    print("Incorrect password.", "danger");
+    return;
+  }
+  recordRecentRoom(room.id);
+  selectRoom(room.id);
+  print(`Joining room "${room.name}"...`, "success");
+  navigate(`/room/${room.id}`);
+}
+
+function handleDeleteCommand(args, { print, navigate, identity }) {
+  if (!args.length) {
+    print("Usage: /delete room-id", "warning");
+    return;
+  }
+  const roomId = args[0].toLowerCase();
+  const room = getRoom(roomId);
+  if (!room) {
+    print("Room not found.", "danger");
+    return;
+  }
+  if (identity.username !== room.ownerUsername) {
+    print("Only the room owner can delete it.", "danger");
+    return;
+  }
+  deleteRoom(roomId);
+  print(`Room ${roomId} deleted.`, "success");
+  navigate("/");
+}
+
+function handleRoomsCommand(print) {
+  const rooms = getRooms();
+  if (!rooms.length) {
+    print("You have not created any rooms yet.", "info");
+    return;
+  }
+  rooms
+    .slice()
+    .reverse()
+    .forEach((room) => {
+      print(`${room.id} - ${room.name} (owner: ${room.ownerDisplayName})`, "info");
+    });
+}
 

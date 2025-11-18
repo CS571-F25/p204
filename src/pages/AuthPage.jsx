@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 
-const MODES = {
+const MODES = Object.freeze({
   LOGIN: "login",
   SIGNUP: "signup",
-};
+});
 
 function AuthPage() {
   const { login, signup } = useAuth();
@@ -30,8 +30,8 @@ function AuthPage() {
       if (!formState.username || !formState.pin) {
         throw new Error("Username and PIN are required.");
       }
-      if (!/^\d{4}$/.test(formState.pin)) {
-        throw new Error("PIN must be exactly 4 digits.");
+      if (!/^\d{6}$/.test(formState.pin)) {
+        throw new Error("PIN must be exactly 6 digits.");
       }
 
       if (isSignup) {
@@ -99,14 +99,14 @@ function AuthPage() {
           </div>
           <div className="mb-3">
             <label htmlFor="pin" className="form-label">
-              PIN (4 digits)
+              PIN (6 digits)
             </label>
             <input
               id="pin"
               name="pin"
               type="password"
-              pattern="\d{4}"
-              maxLength={4}
+              pattern="\d{6}"
+              maxLength={6}
               className="form-control bg-dark text-light border-secondary"
               value={formState.pin}
               onChange={handleInputChange}

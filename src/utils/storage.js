@@ -3,6 +3,8 @@ const SESSION_KEY = "termrooms_session";
 const ROOMS_KEY = "termrooms_rooms";
 const MESSAGES_PREFIX = "termrooms_messages_";
 const RECENTS_KEY = "termrooms_recent";
+const ROOM_LIMIT = 25;
+const RECENTS_LIMIT = 10;
 
 function readJSON(key, fallback) {
   try {
@@ -94,15 +96,81 @@ export function saveRooms(rooms) {
   writeJSON(ROOMS_KEY, rooms);
 }
 
+function generateRoomId() {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let id = "";
+  for (let i = 0; i < 6; i += 1) {
+    id += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return id;
+}
+
+function makeRoomIdUnique(existingIds) {
+  let id = generateRoomId();
+  while (existingIds.includes(id)) {
+    id = generateRoomId();
+  }
+  return id;
+}
+
 export function saveRoom(room) {
   const rooms = getRooms();
   const idx = rooms.findIndex((r) => r.id === room.id);
   if (idx === -1) {
+    if (rooms.length >= ROOM_LIMIT) {
+      throw new Error("Room limit reached. Please delete an old room.");
+    }
     rooms.push(room);
   } else {
     rooms[idx] = room;
   }
   saveRooms(rooms);
+}
+
+export function createRoomRecord({ name, password = "", ownerUsername, ownerDisplayName }) {
+  if (!ownerUsername) {
+    throw new Error("You must be signed in to create a room.");
+  }
+
+  const rooms = getRooms();
+  const roomId = makeRoomIdUnique(rooms.map((r) => r.id));
+  const now = new Date().toISOString();
+
+  const room = {
+    id: roomId,
+    name,
+    password,
+    ownerUsername,
+    ownerDisplayName,
+    createdAt: now,
+    lastActiveAt: now,
+  };
+
+  saveRoom(room);
+  recordRecentRoom(room.id);
+  return room;
+}
+
+export function getRoom(roomId) {
+  return getRooms().find((room) => room.id === roomId);
+}
+
+export function deleteRoom(roomId) {
+  const rooms = getRooms().filter((room) => room.id !== roomId);
+  saveRooms(rooms);
+  localStorage.removeItem(`${MESSAGES_PREFIX}${roomId}`);
+}
+
+export function touchRoom(roomId) {
+  const room = getRoom(roomId);
+  if (!room) return;
+  room.lastActiveAt = new Date().toISOString();
+  saveRoom(room);
+}
+
+export function roomPasswordMatches(room, passwordInput = "") {
+  const stored = room.password ?? "";
+  return stored === (passwordInput ?? "");
 }
 
 export function getMessages(roomId) {
@@ -119,5 +187,11 @@ export function getRecents() {
 
 export function saveRecents(recents) {
   writeJSON(RECENTS_KEY, recents);
+}
+
+export function recordRecentRoom(roomId) {
+  const recents = getRecents().filter((id) => id !== roomId);
+  recents.unshift(roomId);
+  saveRecents(recents.slice(0, RECENTS_LIMIT));
 }
 

@@ -7,7 +7,7 @@
 - ### **User Model: Simple Accounts + Guest Mode**
 
 - **Registered Users**:
-  - Create a lightweight local account (username + 4-digit PIN stored in localStorage).
+  - Create a lightweight local account (username + 6-digit PIN stored in localStorage).
   - Required to create or delete rooms.
   - Choose a display name shown in chat logs.
 - **Guests**:
