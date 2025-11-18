@@ -1,13 +1,10 @@
 const COMMANDS = [
   { cmd: "/help", desc: "List available commands." },
   { cmd: "/guide", desc: "Jump to this guide page." },
-  { cmd: "/create name [password]", desc: "Create a new room (signed-in users only)." },
-  { cmd: "/join room-id [password]", desc: "Join a room by ID." },
   { cmd: "/msg text", desc: "Send a chat message." },
   { cmd: "/leave", desc: "Return to the home page." },
-  { cmd: "/delete room-id", desc: "Delete a room you own." },
   { cmd: "/rooms", desc: "List rooms you created." },
-  { cmd: "/history [count]", desc: "Load earlier messages (button also available)." },
+  { cmd: "/delete room-id", desc: "Delete a room you own." },
   { cmd: "/setname name", desc: "Update your display name." },
   { cmd: "/whoami", desc: "Show your current identity." },
   { cmd: "/clear", desc: "Clear terminal output." },
@@ -24,8 +21,8 @@ function GuidePage() {
             <h2 className="h4">Getting Started</h2>
             <ol className="text-muted">
               <li>Create an account or log in via the Account page (top-right).</li>
-              <li>Create a room from the Home forms or using `/create` inside the terminal.</li>
-              <li>Share the room ID with collaborators; they can join via form or `/join`.</li>
+                  <li>Create a room from the Home forms (signed-in users only).</li>
+                  <li>Share the room ID with collaborators; they can join via the Join Room form.</li>
               <li>Use `/msg` or simply type to chat. Use `/help` anytime if you forget a command.</li>
             </ol>
           </div>

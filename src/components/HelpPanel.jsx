@@ -1,9 +1,9 @@
 const QUICK_COMMANDS = [
-  { cmd: "/create name [password]", desc: "Create a room (must be signed in)." },
-  { cmd: "/join room-id [password]", desc: "Join a room directly from the terminal." },
   { cmd: "/msg hello world", desc: "Send a chat message to the current room." },
   { cmd: "/whoami", desc: "See your current identity." },
   { cmd: "/setname New Name", desc: "Update your display name on the fly." },
+  { cmd: "/rooms", desc: "List rooms you’ve created." },
+  { cmd: "/leave", desc: "Return to the home page." },
   { cmd: "/clear", desc: "Clear terminal output." },
 ];
 

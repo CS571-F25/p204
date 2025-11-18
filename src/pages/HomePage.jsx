@@ -61,8 +61,8 @@ function HomePage() {
       <div className="section-content text-light">
         <h1 className="text-light">TermRooms Home</h1>
         <p className="text-muted">
-          Create new rooms (if signed in) or join existing ones using the forms below. You can always
-          use the terminal commands as well if you prefer the keyboard-driven experience.
+          Create new rooms (if signed in) or join existing ones using the forms below. Once you are
+          inside a room, the terminal takes over for messaging and quick room management.
         </p>
 
         {alert && (

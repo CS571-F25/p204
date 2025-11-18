@@ -8,28 +8,33 @@ function RoomInfoCard({ room, canDelete, onDelete }) {
   }
 
   return (
-    <div className="border rounded-4 p-4 bg-black text-light mt-4">
-      <h2 className="h4 mb-3">{room.name}</h2>
-      <ul className="list-unstyled mb-3">
-        <li>
-          <strong>Room ID:</strong> {room.id}
-        </li>
-        <li>
-          <strong>Owner:</strong> {room.ownerDisplayName}
-        </li>
-        <li>
-          <strong>Created:</strong> {new Date(room.createdAt).toLocaleString()}
-        </li>
-        <li>
-          <strong>Last active:</strong> {new Date(room.lastActiveAt).toLocaleString()}
-        </li>
-        <li>
-          <strong>Password protected:</strong> {room.password ? "Yes" : "No"}
-        </li>
-      </ul>
-
+    <div className="room-info-card text-light">
+      <div>
+        <p className="eyebrow text-muted mb-1">Now viewing</p>
+        <h2 className="h5 mb-0">{room.name}</h2>
+      </div>
+      <div className="meta-row">
+        <span>ID</span>
+        <span>{room.id}</span>
+      </div>
+      <div className="meta-row">
+        <span>Owner</span>
+        <span>{room.ownerDisplayName}</span>
+      </div>
+      <div className="meta-row">
+        <span>Created</span>
+        <span>{new Date(room.createdAt).toLocaleString()}</span>
+      </div>
+      <div className="meta-row">
+        <span>Last active</span>
+        <span>{new Date(room.lastActiveAt).toLocaleString()}</span>
+      </div>
+      <div className="meta-row">
+        <span>Password</span>
+        <span>{room.password ? "Required" : "Open"}</span>
+      </div>
       {canDelete && (
-        <button className="btn btn-outline-danger w-100" onClick={onDelete}>
+        <button className="btn btn-outline-danger w-100 mt-3" onClick={onDelete}>
           Delete Room
         </button>
       )}

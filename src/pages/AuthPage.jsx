@@ -1,9 +1,17 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import AuthForm from "../components/AuthForm.jsx";
 
 function AuthPage() {
-  const { login, signup, isAuthenticated, identity, logout } = useAuth();
+  const { login, signup, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <section className="content-section py-5">
@@ -19,30 +27,11 @@ function AuthPage() {
               </p>
             </div>
           </div>
-          <div className="col-12 col-lg-6">
-            {isAuthenticated ? (
-              <div className="glass-panel p-5 text-light auth-state-card d-flex flex-column justify-content-center gap-3">
-                <div className="emoji" role="img" aria-label="Party popper">
-                  🎉
-                </div>
-                <h2 className="h4 mb-0">You’re signed in as {identity.displayName}</h2>
-                <p className="text-muted mb-0">
-                  Head back to Home to create rooms or hop into an existing session. Want to switch
-                  accounts? Just log out below.
-                </p>
-                <div className="d-flex flex-wrap justify-content-center gap-3">
-                  <Link to="/" className="btn btn-primary-glow">
-                    Go to Home
-                  </Link>
-                  <button className="btn btn-outline-light" onClick={logout}>
-                    Logout
-                  </button>
-                </div>
-              </div>
-            ) : (
+          {!isAuthenticated && (
+            <div className="col-12 col-lg-6">
               <AuthForm onLogin={login} onSignup={signup} />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

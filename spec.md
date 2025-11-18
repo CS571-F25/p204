@@ -46,7 +46,7 @@
 
 ## Vision & Proposal Alignment
 
-TermRooms reimagines real-time collaboration through a terminal-inspired UI. A single command input drives the majority of interactions—users create rooms, join rooms, and chat entirely through concise commands such as `/create`, `/join`, and `/msg`. Account creation and login happen through the dedicated `/auth` page so the terminal can remain focused on collaboration tasks. The surrounding layout keeps things simple: the primary terminal sits beside contextual cards for room info and guides. Each room surfaces ownership metadata, optional passwords, and persistent history, while the homepage doubles as a command center with onboarding content. The experience stays minimal and fast—mirroring the original proposal—yet still meets the CS571 interactive requirements by featuring multiple pages, routed views, and meaningful components.
+TermRooms reimagines real-time collaboration through a terminal-inspired UI. Forms on the Home page handle structured actions like creating or joining rooms, while the in-room terminal focuses on real-time collaboration: chatting, renaming yourself, listing your rooms, and leaving/deleting sessions. Account creation and login happen through the dedicated `/auth` page so the terminal can remain focused on collaboration tasks. The surrounding layout keeps things simple: the primary terminal sits beside contextual cards for room info and guides. Each room surfaces ownership metadata, optional passwords, and persistent history, while the homepage doubles as a command center with onboarding content. The experience stays minimal and fast—mirroring the original proposal—yet still meets the CS571 interactive requirements by featuring multiple pages, routed views, and meaningful components.
 
 ---
 
@@ -290,9 +290,9 @@ The project now focuses on the components that actually ship in `src/components/
 
 ### **Core Commands**
 
-Commands are parsed from user input starting with `/`. Commands can be executed from:
-- **Forms on HomePage**: Primary method for `/create` and `/join` via CreateRoomForm and JoinRoomForm
-- **Terminal in RoomPage**: Alternative method - all commands can be typed in the terminal
+Commands are parsed from user input starting with `/`. Structured actions (create/join) happen through the Home page forms, while the in-room terminal handles collaboration and room-management commands:
+- **Forms on HomePage**: Primary method for creating or joining rooms via CreateRoomForm and JoinRoomForm
+- **Terminal in RoomPage**: Chat, rename, leave, list rooms, delete rooms, clear output
 
 Commands use simple argument syntax (no flags). The single terminal input is the canonical way to interact, with forms providing optional fallbacks. Authentication is handled outside the terminal, so the command list starts with room actions.
 
@@ -304,33 +304,26 @@ Commands use simple argument syntax (no flags). The single terminal input is the
    - Shows current identity and role (“owner” when authenticated, “guest” otherwise)
 
 #### Room Commands
-3. **`/create [room-name] [password]`** *(registered only)*
-   - Generates unique 6-character ID and optional password
-   - Sets caller as owner
-
-4. **`/join [room-id] [password]`**
-   - Joins by exact room ID (forms provide the friendlier path for newcomers)
-
-5. **`/leave`**
+3. **`/leave`**
    - Leaves the current room and returns to Home
 
-6. **`/delete [room-id]`** *(owner only)*
+4. **`/delete [room-id]`** *(owner only)*
    - Immediately removes the room and its messages from localStorage
 
-7. **`/rooms`**
+5. **`/rooms`**
     - Lists rooms you created (pulled from localStorage)
 
 #### Messaging & Support Commands
-8. **`/msg [message]`** or plain text
+6. **`/msg [message]`** or plain text
     - Broadcasts to current room; plain text without `/` is treated the same
 
-9. **`/help`**
+7. **`/help`**
     - Prints the inline cheat sheet (no topic filtering yet)
 
-10. **`/guide`**
+8. **`/guide`**
     - Navigates to the Guide page for the full documentation
 
-11. **`/clear`**
+9. **`/clear`**
     - Clears terminal output locally (does not delete chat history)
 
 ### **Messaging Model**
@@ -438,9 +431,7 @@ This spec keeps the design ambitious enough to be portfolio-ready but scoped to 
 - [ ] Build CommandInput component
 - [ ] Build TerminalOutput component
 - [ ] Implement command handler logic inside `Terminal` (commands kept inline; standalone `commands.js` deferred)
-- [ ] Implement `/create` command
-- [ ] Implement `/join` command
-- [ ] Implement `/msg` command
+- [ ] Wire `/msg` command
 - [ ] Build MessageList component
 - [ ] Build MessageItem component
 - [ ] Implement room storage utilities
@@ -522,7 +513,7 @@ Follow these numbered steps sequentially. After completing a step, mark it done 
 
 6. **Room Lifecycle**
    - Build `CreateRoomForm` and `JoinRoomForm`.
-   - Implement `/create`, `/join`, `/leave`, `/rooms`, `/delete`.
+   - Implement `/leave`, `/rooms`, `/delete`.
    - Add `RoomInfoCard` showing owner info + delete button (owner only). (RoomCard backlog item optional.)
 
 7. **Messaging**
@@ -697,7 +688,7 @@ export function setUsername(username) {
 export function parseCommand(input) {
   // Parse "/command arg1 arg2" (simple syntax, no flags)
   // Returns: { command, args }
-  // Example: "/create MyRoom secret123" → { command: "create", args: ["MyRoom", "secret123"] }
+  // Example: "/msg hello world" → { command: "msg", args: ["hello", "world"] }
 }
 
 export function executeCommand(command, args, context) {

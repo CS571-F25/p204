@@ -84,41 +84,65 @@ function RoomPage() {
   };
 
   return (
-    <section className="content-section py-5">
+    <section className="content-section py-5 room-shell">
       <div className="section-content">
-        <h1>Room View</h1>
+        <header className="room-hero glass-panel mb-4">
+          <div>
+            <p className="eyebrow text-muted mb-1">Room</p>
+            <h1 className="room-title mb-1">{room?.name ?? roomId}</h1>
+            <p className="text-muted mb-0 small">ID: {room?.id ?? "—"}</p>
+          </div>
+          <div className="room-hero-actions">
+            <button className="btn btn-outline-light btn-sm" onClick={() => navigate("/")}>
+              Leave room
+            </button>
+            {room && canDeleteOwner(room, identity, isAuthenticated) && (
+              <button className="btn btn-outline-danger btn-sm" onClick={handleDeleteRoom}>
+                Delete room
+              </button>
+            )}
+          </div>
+        </header>
         {error && <p className="text-danger">{error}</p>}
-        {!error && (
-          <p className="text-muted">
-            You are viewing <strong>{room?.name ?? roomId}</strong>. Use the terminal below to run
-            commands or chat once messaging is enabled.
-          </p>
-        )}
-        <div className="row g-4">
-          <div className="col-12 col-lg-8">
-            <div className="glass-panel p-4 mb-4">
+        <div className="room-grid">
+          <div className="room-column">
+            <div className="module-panel message-panel">
+              <div className="panel-heading">
+                <h2 className="h5 mb-0">Conversation</h2>
+                {canLoadMore && (
+                  <button className="btn btn-outline-light btn-sm" onClick={handleLoadMore}>
+                    Load earlier
+                  </button>
+                )}
+              </div>
               <MessageList
                 messages={messages.slice(-visibleCount)}
                 onLoadMore={canLoadMore ? handleLoadMore : null}
                 canLoadMore={canLoadMore}
               />
             </div>
-            <div className="glass-panel p-4">
+            <div className="module-panel terminal-panel">
+              <div className="panel-heading mb-3">
+                <div>
+                  <h2 className="h5 mb-0">Terminal</h2>
+                  <p className="text-muted mb-0 small">Type /help to see available commands.</p>
+                </div>
+              </div>
               <Terminal onChat={handleSendMessage} />
             </div>
           </div>
-          <div className="col-12 col-lg-4">
-            <div className="glass-panel p-4 mb-4">
+          <aside className="room-column detail-stack">
+            <div className="module-panel">
               <RoomInfoCard
                 room={room}
-                canDelete={Boolean(room && isAuthenticated && identity.username === room.ownerUsername)}
+                canDelete={canDeleteOwner(room, identity, isAuthenticated)}
                 onDelete={handleDeleteRoom}
               />
             </div>
-            <div className="glass-panel p-4">
+            <div className="module-panel">
               <UserList users={participants} />
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </section>
@@ -126,6 +150,10 @@ function RoomPage() {
 }
 
 export default RoomPage;
+
+function canDeleteOwner(room, identity, isAuthenticated) {
+  return Boolean(room && isAuthenticated && identity.username === room.ownerUsername);
+}
 
 function buildParticipantList(room, displayName) {
   if (!room) return [];
