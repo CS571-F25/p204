@@ -10,3 +10,15 @@
   font-weight: 600;
   text-decoration: underline;
 }
+
+.terminal-output {
+  min-height: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+  font-family: "Courier New", Courier, monospace;
+  margin-bottom: 1rem;
+}
+
+.terminal-line + .terminal-line {
+  margin-top: 0.25rem;
+}

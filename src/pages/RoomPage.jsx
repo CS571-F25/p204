@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import Terminal from "../components/Terminal.jsx";
 
 function RoomPage() {
   const { roomId } = useParams();
@@ -11,6 +12,7 @@ function RoomPage() {
           You are viewing the placeholder for room <strong>{roomId ?? "unknown"}</strong>. The
           terminal and chat interface will live here.
         </p>
+        <Terminal />
       </div>
     </section>
   );
