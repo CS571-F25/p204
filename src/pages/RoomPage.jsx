@@ -41,6 +41,18 @@ function RoomPage() {
     return () => clearTimeout(timeout);
   }, [inputFeedback]);
 
+  useEffect(() => {
+    if (!roomId) return undefined;
+    const participant = {
+      username: isAuthenticated ? identity.username : null,
+      displayName: identity.displayName,
+    };
+    addParticipant(roomId, participant);
+    return () => {
+      removeParticipant(roomId, participant.username, participant.displayName);
+    };
+  }, [roomId, identity.username, identity.displayName, isAuthenticated]);
+
   const hydrateRoom = useCallback(() => {
     const record = roomId ? getRoom(roomId) : null;
     if (!record) {
@@ -57,19 +69,8 @@ function RoomPage() {
     setCanLoadMore(storedMessages.length > 50);
     const roster = buildParticipantList(record);
     setParticipants(roster);
-  useEffect(() => {
-    if (!roomId) return undefined;
-    const participant = {
-      username: isAuthenticated ? identity.username : null,
-      displayName: identity.displayName,
-    };
-    addParticipant(roomId, participant);
-    return () => {
-      removeParticipant(roomId, participant.username, participant.displayName);
-    };
-  }, [roomId, identity.username, identity.displayName, isAuthenticated]);
     return true;
-  }, [roomId, identity.displayName]);
+  }, [roomId]);
 
   useEffect(() => {
     const ok = hydrateRoom();
