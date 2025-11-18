@@ -1,10 +1,11 @@
 const QUICK_COMMANDS = [
-  { cmd: "/msg hello world", desc: "Send a chat message to the current room." },
+  { cmd: "/help", desc: "Show the list of available commands." },
   { cmd: "/whoami", desc: "See your current identity." },
   { cmd: "/setname New Name", desc: "Update your display name on the fly." },
-  { cmd: "/rooms", desc: "List rooms you’ve created." },
   { cmd: "/leave", desc: "Return to the home page." },
+  { cmd: "/delete room-id", desc: "Delete a room you own." },
   { cmd: "/clear", desc: "Clear terminal output." },
+  { cmd: "Plain text", desc: "Just type to chat with everyone in the room." },
 ];
 
 function HelpPanel() {

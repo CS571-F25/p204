@@ -10,7 +10,6 @@ function RoomInfoCard({ room, canDelete, onDelete }) {
   return (
     <div className="room-info text-light">
       <p className="eyebrow text-muted mb-1">Room details</p>
-      <h2 className="h5 mb-3">{room.name}</h2>
       <dl className="room-info-list">
         <div>
           <dt>ID</dt>

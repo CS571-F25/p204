@@ -1,11 +1,11 @@
-import { HashRouter, Routes, Route, NavLink, Link } from "react-router-dom";
+import { HashRouter, Routes, Route, NavLink } from "react-router-dom";
 import HomePage from "./pages/HomePage.jsx";
 import RoomPage from "./pages/RoomPage.jsx";
 import GuidePage from "./pages/GuidePage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
 import RoomsPage from "./pages/RoomsPage.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
-import { AppProvider, useAppContext } from "./context/AppContext.jsx";
+import { AppProvider } from "./context/AppContext.jsx";
 import "./App.css";
 
 function App() {
@@ -34,7 +34,6 @@ function App() {
                   </div>
                 </div>
                 <div className="d-flex align-items-center gap-3">
-                  <ActiveRoomLink />
                   <IdentityBadge />
                 </div>
               </div>
@@ -72,16 +71,6 @@ function IdentityBadge() {
         </button>
       )}
     </div>
-  );
-}
-
-function ActiveRoomLink() {
-  const { currentRoomId } = useAppContext();
-  if (!currentRoomId) return null;
-  return (
-    <Link className="btn btn-outline-light btn-sm" to={`/room/${currentRoomId}`}>
-      Return to room
-    </Link>
   );
 }
 
