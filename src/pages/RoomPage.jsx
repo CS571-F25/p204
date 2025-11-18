@@ -126,16 +126,6 @@ function RoomPage() {
             <h1 className="room-title mb-1">{room?.name ?? roomId}</h1>
             <p className="text-muted mb-0 small">ID: {room?.id ?? "—"}</p>
           </div>
-          <div className="room-hero-actions">
-            <button className="btn btn-outline-light btn-sm" onClick={() => navigate("/")}>
-              Leave room
-            </button>
-            {room && canDeleteOwner(room, identity, isAuthenticated) && (
-              <button className="btn btn-outline-danger btn-sm" onClick={handleDeleteRoom}>
-                Delete room
-              </button>
-            )}
-          </div>
         </header>
         {error && <p className="text-danger">{error}</p>}
         <div className="room-layout">
@@ -149,8 +139,8 @@ function RoomPage() {
             </div>
             <div className="console-terminal">
               <Terminal onChat={handleSendMessage} variant="embedded" onFeedback={setInputFeedback} />
-              {inputFeedback && <p className="text-success small mt-2">{inputFeedback}</p>}
             </div>
+            {inputFeedback && <p className="feedback-line text-success small">{inputFeedback}</p>}
           </div>
           <aside className="room-sidebar">
             <RoomInfoCard

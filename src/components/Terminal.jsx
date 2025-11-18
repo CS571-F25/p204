@@ -81,9 +81,6 @@ function Terminal({ onChat, variant = "standalone", onFeedback }) {
       case "delete":
         handleDeleteCommand(args, { print, navigate, identity });
         break;
-      case "rooms":
-        handleRoomsCommand(print);
-        break;
       case "clear":
         clearTerminal();
         break;
@@ -122,18 +119,6 @@ function handleDeleteCommand(args, { print, navigate, identity }) {
   navigate("/");
 }
 
-function handleRoomsCommand(print) {
-  const rooms = getRooms();
-  if (!rooms.length) {
-    print("You have not created any rooms yet.", "info");
-    return;
-  }
-  rooms
-    .slice()
-    .reverse()
-    .forEach((room) => {
-      print(`${room.id} - ${room.name} (owner: ${room.ownerDisplayName})`, "info");
-    });
-}
+function handleRoomsCommand(print) {}
 
 
