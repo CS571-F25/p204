@@ -12,12 +12,12 @@ function App() {
     <AuthProvider>
       <AppProvider>
         <HashRouter>
-          <div className="d-flex flex-column min-vh-100 bg-dark text-light">
-            <header className="border-bottom border-secondary">
-              <nav className="container py-3 d-flex flex-column flex-md-row align-items-md-center gap-3 justify-content-between">
-                <div className="d-flex flex-column flex-md-row align-items-md-center gap-3">
-                  <h1 className="fs-4 mb-0">TermRooms</h1>
-                  <div className="d-flex gap-3">
+          <div className="app-shell d-flex flex-column min-vh-100 text-light">
+            <header className="app-header py-3">
+              <div className="container-fluid px-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div className="d-flex flex-column flex-md-row align-items-md-center gap-4">
+                  <h1 className="fs-4 mb-0 brand-gradient">TermRooms</h1>
+                  <div className="d-flex gap-3 nav-links">
                     <NavLink className="nav-link text-light" to="/">
                       Home
                     </NavLink>
@@ -33,10 +33,10 @@ function App() {
                   </div>
                 </div>
                 <IdentityBadge />
-              </nav>
+              </div>
             </header>
 
-            <main className="flex-grow-1">
+            <main className="flex-grow-1 py-5">
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/room/:roomId" element={<RoomPage />} />
@@ -46,8 +46,8 @@ function App() {
               </Routes>
             </main>
 
-            <footer className="border-top border-secondary py-3 text-center text-muted">
-              <small>TermRooms &mdash; CS571 Project Placeholder</small>
+            <footer className="app-footer py-4 text-center text-muted">
+              <small>TermRooms — Built for CS571</small>
             </footer>
           </div>
         </HashRouter>
@@ -59,10 +59,8 @@ function App() {
 function IdentityBadge() {
   const { identity, isAuthenticated, logout } = useAuth();
   return (
-    <div className="d-flex align-items-center gap-3">
-      <span className="badge bg-secondary-subtle text-light text-uppercase">
-        {identity.displayName}
-      </span>
+    <div className="identity-badge d-flex align-items-center gap-3">
+      <span className="badge identity-pill text-uppercase">{identity.displayName}</span>
       {isAuthenticated && (
         <button className="btn btn-outline-light btn-sm" onClick={logout}>
           Logout

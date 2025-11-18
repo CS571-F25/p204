@@ -16,7 +16,7 @@ const COMMANDS = [
 function GuidePage() {
   return (
     <section className="py-5">
-      <div className="container text-light">
+      <div className="container-fluid px-4 text-light">
         <div className="glass-panel p-5">
           <h1 className="mb-4">Guide &amp; Onboarding</h1>
 

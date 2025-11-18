@@ -58,7 +58,7 @@ function HomePage() {
 
   return (
     <section className="py-5">
-      <div className="container">
+      <div className="container-fluid px-4">
         <h1 className="text-light">TermRooms Home</h1>
         <p className="text-muted">
           Create new rooms (if signed in) or join existing ones using the forms below. You can always

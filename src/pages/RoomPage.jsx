@@ -72,7 +72,7 @@ function RoomPage() {
 
   return (
     <section className="py-5">
-      <div className="container">
+      <div className="container-fluid px-4">
         <h1>Room View</h1>
         {error && <p className="text-danger">{error}</p>}
         {!error && (
