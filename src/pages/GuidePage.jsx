@@ -32,16 +32,16 @@ function GuidePage() {
 
           <div className="mb-5">
             <h2 className="h4">Command Glossary</h2>
-            <div className="row g-3">
-              {COMMANDS.map((item) => (
-                <div key={item.cmd} className="col-12 col-md-6">
-                  <div className="border rounded-4 p-3 bg-black bg-opacity-50 h-100">
-                    <code>{item.cmd}</code>
-                    <p className="mb-0 text-muted small">{item.desc}</p>
-                  </div>
+                <div className="row g-3">
+                  {COMMANDS.map((item) => (
+                    <div key={item.cmd} className="col-12 col-md-6">
+                      <div className="guide-card h-100">
+                        <code>{item.cmd}</code>
+                        <p className="mb-0 text-muted small">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
           </div>
 
           <div>

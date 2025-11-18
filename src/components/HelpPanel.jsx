@@ -44,9 +44,9 @@ function HelpPanel() {
               data-bs-parent="#helpAccordion"
             >
               <div className="accordion-body">
-                <ul className="list-unstyled d-flex flex-column gap-2 mb-0">
+                <ul className="list-unstyled d-flex flex-column gap-3 mb-0">
                   {section.items.map((item) => (
-                    <li key={item.cmd} className="border rounded-3 p-3 bg-black bg-opacity-50">
+                    <li key={item.cmd} className="help-card">
                       <code>{item.cmd}</code>
                       <p className="mb-0 text-muted small">{item.desc}</p>
                     </li>
