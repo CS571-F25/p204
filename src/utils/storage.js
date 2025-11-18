@@ -93,6 +93,11 @@ export function getRooms() {
   return readJSON(ROOMS_KEY, []);
 }
 
+export function getRoomsByOwner(ownerUsername) {
+  if (!ownerUsername) return [];
+  return getRooms().filter((room) => room.ownerUsername === ownerUsername);
+}
+
 export function saveRooms(rooms) {
   writeJSON(ROOMS_KEY, rooms);
 }

@@ -218,6 +218,11 @@ A component is a **reusable piece of UI** that:
    - Purpose: Dashboard for creating/joining rooms plus quick help
    - Contains: CreateRoomForm, JoinRoomForm, HelpPanel, status alert
 
+2. **RoomsPage** (`src/pages/RoomsPage.jsx`)
+   - Route: `/rooms`
+   - Purpose: Directory of rooms the signed-in user has created
+   - Contains: grid of room cards with IDs/password indicators and quick links
+
 2. **RoomPage** (`src/pages/RoomPage.jsx`)
    - Route: `/room/:roomId`
    - Purpose: Main room interface

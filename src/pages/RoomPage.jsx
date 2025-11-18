@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Terminal from "../components/Terminal.jsx";
 import RoomInfoCard from "../components/RoomInfoCard.jsx";
@@ -16,6 +16,10 @@ import {
   loadOlderMessages,
 } from "../utils/storage.js";
 
+const MESSAGE_KEY_PREFIX = "termrooms_messages_";
+const ROOMS_STORAGE_KEY = "termrooms_rooms";
+const RECENTS_STORAGE_KEY = "termrooms_recent";
+
 function RoomPage() {
   const { roomId } = useParams();
   const navigate = useNavigate();
@@ -28,25 +32,48 @@ function RoomPage() {
   const [canLoadMore, setCanLoadMore] = useState(false);
   const [participants, setParticipants] = useState([]);
 
-  useEffect(() => {
+  const hydrateRoom = useCallback(() => {
     const record = roomId ? getRoom(roomId) : null;
     if (!record) {
-      setError("Room not found. It might have been deleted.");
       setRoom(null);
-    } else {
-      setRoom(record);
-      recordRecentRoom(record.id);
-      setError(null);
-      const storedMessages = getMessages(record.id);
-      setMessages(storedMessages);
-      setVisibleCount(50);
-      setCanLoadMore(storedMessages.length > 50);
-      const roster = buildParticipantList(record, identity.displayName);
-      setParticipants(roster);
+      setError("This room no longer exists.");
+      return false;
     }
+    setRoom(record);
+    recordRecentRoom(record.id);
+    setError(null);
+    const storedMessages = getMessages(record.id);
+    setMessages(storedMessages);
+    setVisibleCount(50);
+    setCanLoadMore(storedMessages.length > 50);
+    const roster = buildParticipantList(record, identity.displayName);
+    setParticipants(roster);
+    return true;
+  }, [roomId, identity.displayName]);
+
+  useEffect(() => {
+    const ok = hydrateRoom();
     selectRoom(roomId ?? null);
+    if (!ok) {
+      navigate("/", { replace: true });
+    }
     return () => selectRoom(null);
-  }, [roomId, selectRoom, identity.displayName]);
+  }, [hydrateRoom, roomId, selectRoom, navigate]);
+
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (!roomId || !event.key) return;
+      if (
+        event.key === `${MESSAGE_KEY_PREFIX}${roomId}` ||
+        event.key === ROOMS_STORAGE_KEY ||
+        event.key === RECENTS_STORAGE_KEY
+      ) {
+        hydrateRoom();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [roomId, hydrateRoom]);
 
   const handleDeleteRoom = () => {
     if (!room) return;
@@ -104,44 +131,30 @@ function RoomPage() {
           </div>
         </header>
         {error && <p className="text-danger">{error}</p>}
-        <div className="room-grid">
-          <div className="room-column">
-            <div className="module-panel message-panel">
-              <div className="panel-heading">
-                <h2 className="h5 mb-0">Conversation</h2>
-                {canLoadMore && (
-                  <button className="btn btn-outline-light btn-sm" onClick={handleLoadMore}>
-                    Load earlier
-                  </button>
-                )}
-              </div>
+        <div className="room-layout">
+          <div className="interaction-surface glass-panel">
+            <div className="panel-heading">
+              <h2 className="h5 mb-0">Conversation & Commands</h2>
+            </div>
+            <div className="interaction-body">
               <MessageList
                 messages={messages.slice(-visibleCount)}
                 onLoadMore={canLoadMore ? handleLoadMore : null}
                 canLoadMore={canLoadMore}
               />
-            </div>
-            <div className="module-panel terminal-panel">
-              <div className="panel-heading mb-3">
-                <div>
-                  <h2 className="h5 mb-0">Terminal</h2>
-                  <p className="text-muted mb-0 small">Type /help to see available commands.</p>
-                </div>
+              <div className="command-log">
+                <Terminal onChat={handleSendMessage} variant="embedded" />
               </div>
-              <Terminal onChat={handleSendMessage} />
             </div>
           </div>
-          <aside className="room-column detail-stack">
-            <div className="module-panel">
-              <RoomInfoCard
-                room={room}
-                canDelete={canDeleteOwner(room, identity, isAuthenticated)}
-                onDelete={handleDeleteRoom}
-              />
-            </div>
-            <div className="module-panel">
-              <UserList users={participants} />
-            </div>
+          <aside className="room-sidebar glass-panel">
+            <RoomInfoCard
+              room={room}
+              canDelete={canDeleteOwner(room, identity, isAuthenticated)}
+              onDelete={handleDeleteRoom}
+            />
+            <div className="divider" />
+            <UserList users={participants} />
           </aside>
         </div>
       </div>

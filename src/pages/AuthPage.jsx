@@ -1,9 +1,15 @@
 import { Link } from "react-router-dom";
+import { useMemo } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import AuthForm from "../components/AuthForm.jsx";
+import { getRoomsByOwner } from "../utils/storage.js";
 
 function AuthPage() {
   const { login, signup, isAuthenticated, identity, logout } = useAuth();
+  const ownedRooms = useMemo(
+    () => (isAuthenticated ? getRoomsByOwner(identity.username) : []),
+    [isAuthenticated, identity]
+  );
 
   return (
     <section className="content-section py-5">
@@ -27,6 +33,22 @@ function AuthPage() {
                 <div className="d-flex flex-column gap-1 text-muted small">
                   <span>Username: {identity.username}</span>
                   <span>Role: {identity.role}</span>
+                </div>
+                <div>
+                  <h3 className="h6 text-uppercase text-muted">Your rooms</h3>
+                  {ownedRooms.length === 0 && (
+                    <p className="mb-0 text-muted small">No rooms yet. Create one from Home.</p>
+                  )}
+                  {ownedRooms.length > 0 && (
+                    <ul className="list-unstyled mb-0 small room-list">
+                      {ownedRooms.map((room) => (
+                        <li key={room.id} className="d-flex justify-content-between gap-2">
+                          <span>{room.name}</span>
+                          <code>{room.id}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div className="d-flex flex-wrap gap-3">
                   <Link to="/" className="btn btn-primary-glow flex-grow-1">

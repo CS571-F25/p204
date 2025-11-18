@@ -3,6 +3,7 @@ import HomePage from "./pages/HomePage.jsx";
 import RoomPage from "./pages/RoomPage.jsx";
 import GuidePage from "./pages/GuidePage.jsx";
 import AuthPage from "./pages/AuthPage.jsx";
+import RoomsPage from "./pages/RoomsPage.jsx";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import { AppProvider, useAppContext } from "./context/AppContext.jsx";
 import "./App.css";
@@ -20,6 +21,9 @@ function App() {
                   <div className="d-flex gap-3 nav-links">
                     <NavLink className="nav-link text-light" to="/">
                       Home
+                    </NavLink>
+                    <NavLink className="nav-link text-light" to="/rooms">
+                      Rooms
                     </NavLink>
                     <NavLink className="nav-link text-light" to="/guides">
                       Guides
@@ -41,6 +45,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/room/:roomId" element={<RoomPage />} />
                 <Route path="/guides" element={<GuidePage />} />
+                <Route path="/rooms" element={<RoomsPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="*" element={<HomePage />} />
               </Routes>

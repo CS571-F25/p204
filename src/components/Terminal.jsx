@@ -18,7 +18,7 @@ const HELP_TEXT = [
   " /clear               Clear terminal output",
 ];
 
-function Terminal({ onChat }) {
+function Terminal({ onChat, variant = "standalone" }) {
   const navigate = useNavigate();
   const { identity, isAuthenticated, setDisplayName } = useAuth();
   const { pushTerminalMessage, clearTerminal, selectRoom } = useAppContext();
@@ -93,7 +93,7 @@ function Terminal({ onChat }) {
   };
 
   return (
-    <div className="terminal border border-secondary rounded-3 p-3 bg-black text-light">
+    <div className={`terminal ${variant === "embedded" ? "terminal-embedded" : ""}`}>
       <TerminalOutput />
       <CommandInput onSubmit={handleCommand} />
     </div>
