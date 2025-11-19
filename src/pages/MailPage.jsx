@@ -9,6 +9,7 @@ import {
   addParticipant,
   recordRecentRoom,
   updateInvite,
+  subscribeToRoom,
 } from "../utils/storage.js";
 
 function MailPage() {
@@ -84,6 +85,10 @@ function MailPage() {
       displayName: identity.displayName,
       role: "member",
     });
+    subscribeToRoom(
+      { username: isAuthenticated ? identity.username : null, displayName: identity.displayName },
+      room.id,
+    );
     recordRecentRoom(room.id);
     updateInvite(invite.id, { status: "accepted", respondedAt: new Date().toISOString() });
     setAlert({ variant: "success", message: `Joined ${room.name}.` });

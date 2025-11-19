@@ -15,6 +15,7 @@ import {
   loadOlderMessages,
   addParticipant,
   removeParticipant,
+  subscribeToRoom,
 } from "../utils/storage.js";
 
 const MESSAGE_KEY_PREFIX = "termrooms_messages_";
@@ -94,6 +95,10 @@ function RoomPage() {
       role: isLeader ? "leader" : "member",
     };
     addParticipant(roomId, participant);
+    subscribeToRoom(
+      { username: participant.username, displayName: participant.displayName },
+      roomId,
+    );
     return () => {
       removeParticipant(roomId, {
         username: participant.username,

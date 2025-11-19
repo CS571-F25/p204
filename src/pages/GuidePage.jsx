@@ -1,21 +1,4 @@
-const COMMANDS = [
-  { cmd: "/help", desc: "List available commands." },
-  { cmd: "/guide", desc: "Jump to this guide page." },
-  { cmd: "/leave", desc: "Return to the home page." },
-  { cmd: "/delete <room-id>", desc: "Delete a room you own." },
-  { cmd: "/setname <name>", desc: "Update your display name." },
-  { cmd: "/topic [text|clear]", desc: "View or set the room topic (owners only to set)." },
-  { cmd: "/whoami", desc: "Show your current identity." },
-  { cmd: "/invite <user> [msg]", desc: "Send an invite to another user." },
-  { cmd: "/kick <name>", desc: "Remove a participant (leader/co-lead)." },
-  { cmd: "/ban <name>", desc: "Remove + block a participant (leader only)." },
-  { cmd: "/promote <name>", desc: "Make someone a co-leader (leader only)." },
-  { cmd: "/demote <name>", desc: "Return a co-leader to member (leader only)." },
-  { cmd: "/recent [clear]", desc: "List or clear recently opened rooms." },
-  { cmd: "/relay <room-id> [pass] <text>", desc: "Send a message into another room you own." },
-  { cmd: "/clear", desc: "Clear terminal output." },
-  { cmd: "Plain text", desc: "Just type to chat with everyone in the room." },
-];
+import { COMMAND_SECTIONS } from "../constants/commandCatalog.js";
 
 function GuidePage() {
   return (
@@ -36,14 +19,26 @@ function GuidePage() {
 
           <div className="mb-5 guide-section">
             <h2 className="h4 text-light">Command Glossary</h2>
-            <div className="command-grid">
-              {COMMANDS.map((item) => (
-                <div key={item.cmd} className="command-row">
-                  <code>{item.cmd}</code>
-                  <span>{item.desc}</span>
+            <p className="text-white-50 small mb-3">
+              Commands use `&lt;required&gt;` arguments and `[optional]` arguments. Sections below
+              mirror what the in-app `/help` command prints.
+            </p>
+            {COMMAND_SECTIONS.map((section) => (
+              <div key={section.key} className="mb-4">
+                <div className="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                  <h3 className="h6 text-uppercase text-white-75 mb-0">{section.title}</h3>
+                  <span className="badge bg-secondary text-uppercase">{section.scope}</span>
                 </div>
-              ))}
-            </div>
+                <div className="command-grid">
+                  {section.commands.map((command) => (
+                    <div key={command.syntax} className="command-row">
+                      <code>{command.syntax}</code>
+                      <span>{command.description}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
         </div>

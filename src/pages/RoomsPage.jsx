@@ -14,6 +14,7 @@ import {
   getRecents,
   saveRoom,
   getRoomsByParticipant,
+  getSubscribedRooms,
 } from "../utils/storage.js";
 
 function RoomsPage() {
@@ -40,10 +41,23 @@ function RoomsPage() {
       username: isAuthenticated ? identity.username : null,
       displayName: identity.displayName,
     };
-    const joined = getRoomsByParticipant(participantProfile).filter(
-      (room) => room.ownerUsername !== participantProfile.username,
-    );
-    setJoinedRooms(joined);
+    const membership = getRoomsByParticipant(participantProfile).filter((room) => {
+      if (!participantProfile.username) return room.ownerUsername !== null;
+      return room.ownerUsername !== participantProfile.username;
+    });
+    const subscribed = getSubscribedRooms(participantProfile).filter((room) => room);
+    const combinedMap = new Map();
+    [...membership, ...subscribed].forEach((room) => {
+      if (!room) return;
+      if (
+        participantProfile.username &&
+        room.ownerUsername === participantProfile.username
+      ) {
+        return;
+      }
+      combinedMap.set(room.id, room);
+    });
+    setJoinedRooms(Array.from(combinedMap.values()));
   }, [isAuthenticated, identity]);
 
   useEffect(() => {

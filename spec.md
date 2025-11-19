@@ -167,9 +167,15 @@ User Action → Component Handler → Update State → Save to localStorage → 
     recipient: "classmate01",
     sender: "Yazod",
     message: "Join my debugging room!",
-    createdAt: "2025-11-02T09:00:00Z"
+    status: "pending", // "pending" | "accepted" | "declined" | "expired"
+    createdAt: "2025-11-02T09:00:00Z",
+    respondedAt: null
   }
 ]
+'termrooms_subscriptions' = {
+  "user:yazod": ["abc123", "def456"],
+  "guest:guest-0912": ["ghi789"]
+}
 ```
 
 ---
@@ -323,56 +329,33 @@ Commands are parsed from user input starting with `/`. Structured actions (creat
 Commands use simple argument syntax (no flags). The single terminal input is the canonical way to interact, with forms providing optional fallbacks. Authentication is handled outside the terminal, so the command list starts with room actions.  
 **Notation**: `<value>` = required argument, `[value]` = optional argument.
 
-#### Identity Commands
-1. **`/setname <display-name>`**
-   - Updates display name (persists for logged-in users; temporary for guests)
+#### Command Scope Overview
 
-2. **`/whoami`**
-   - Shows current identity and role (“owner” when authenticated, “guest” otherwise)
+Commands are grouped by the minimum role required. This taxonomy mirrors the shared `COMMAND_SECTIONS` constant that powers `/help`, the home-page refresher, and the Guide page.
 
-#### Room Commands
-3. **`/leave`**
-   - Leaves the current room and returns to Home
+| Scope | Role requirement | Commands |
+| --- | --- | --- |
+| Global (any page) | Everyone | `/help`, `/guide`, `/whoami`, `/setname <display-name>`, `/clear`, plain text chat |
+| Room members | Must be inside a room (any role) | `/leave`, `/recent [clear]`, `/relay <room-id> [password] <text>` |
+| Lead commands | Leader or co-leader | `/invite <username> [message]`, `/kick <display-name>` |
+| Leader only | Room owner | `/topic [text|clear]`, `/delete <room-id>`, `/ban <display-name>`, `/promote <display-name>`, `/demote <display-name>` |
 
-4. **`/delete <room-id>`** *(owner only)*
-   - Immediately removes the room and its messages from localStorage
+**Command details**
 
-#### Messaging & Support Commands
-5. **`/topic [text|clear]`**
-   - Without arguments shows the current room topic; owners can set a new topic or run `/topic clear` to remove it
-
-6. **`/invite <username> [message]`**
-   - Leaders or co-leaders can send an invite that appears in the recipient’s Mail page inbox
-
-7. **`/kick <display-name>`**
-   - Leaders or co-leaders can remove a participant (only leaders can remove another co-leader)
-
-8. **`/ban <display-name>`**
-   - Leaders can remove and ban a participant; banned names can’t rejoin unless unbanned manually
-
-9. **`/promote <display-name>`**
-   - Leaders can promote a member to co-leader
-
-10. **`/demote <display-name>`**
-    - Leaders can demote a co-leader back to member
-
-11. **Plain text (no leading slash)**
-    - Broadcasts to the current room; anything that doesn’t start with `/` is treated as chat
-
-12. **`/help`**
-    - Prints the inline cheat sheet (no topic filtering yet)
-
-13. **`/guide`**
-    - Navigates to the Guide page for the full documentation
-
-14. **`/clear`**
-    - Clears terminal output locally (does not delete chat history)
-
-15. **`/recent [clear]`**
-    - Lists the last few rooms you opened (stored in `localStorage`); `clear` wipes the list
-
-16. **`/relay <room-id> [password] <message>`**
-    - Injects a chat message into another room’s history without leaving your current room (password required unless you own the room)
+- **`/help`** & **`/guide`**: Open in-app documentation (terminal vs. dedicated Guides page).
+- **`/whoami`**: Reports the signed-in account (or guest status) plus your role inside the currently selected room.
+- **`/setname <display-name>`**: Updates the display name for the current tab; persists for authenticated users via `termrooms_accounts`.
+- **`Plain text` chat**: Anything without a leading `/` is broadcast to the active room.
+- **`/clear`**: Clears the terminal output buffer without touching chat history.
+- **`/leave`**: Returns to the lobby (`/`) and clears the active room context.
+- **`/recent [clear]`**: Lists (or clears) the last 10 room IDs touched via `termrooms_recent`.
+- **`/relay <room-id> [password] <text>`**: Lets any room member drop a message into another room; passwords are required unless you own the destination room.
+- **`/invite <username> [message]`**: Leads can send inbox invites. Invites auto-subscribe the recipient to the room (`termrooms_subscriptions`) even before they accept.
+- **`/kick <display-name>`**: Leads can remove members; only the leader can remove co-leaders.
+- **`/topic [text|clear]`**: The leader can view, set, or clear the persistent topic surfaced in the RoomInfoCard sidebar.
+- **`/delete <room-id>`**: Deletes a room you own and purges its message history from localStorage. Other tabs are redirected out via the cross-tab `storage` listener.
+- **`/ban <display-name>`**: Leaders can remove a participant and add their display name to the `banned` array, preventing re-entry.
+- **`/promote <display-name>`** / **`/demote <display-name>`**: Leaders elevate members to co-leader (or demote them back). Roles persist because `participants[].role` is saved with each room record.
 
 ### **Leadership Roles & Permissions**
 
@@ -405,7 +388,7 @@ Messages saved in `localStorage` currently use a single `type` of `"message"` be
 - **Message Persistence**: Messages saved per room as chat bubbles
 - **Room List**: View all created rooms on the Rooms page
 - **Recent Rooms**: Track recently visited rooms
-- **Joined Rooms**: Rooms you participate in (but don’t own) show up in a dedicated list on the Rooms page for quick access
+- **Joined Rooms**: Rooms you participate in (but don’t own) or subscribe to via invites show up in a dedicated list on the Rooms page for quick access
 - **Room Topics**: Owners can assign an optional topic via `/topic`, surfaced in the sidebar
 - **Single Terminal Focus**: One primary terminal per page; users switch rooms via commands or cards instead of multiple floating panels.
 - **Activity Indicators**: Room info card shows owner, creation time, last activity, and whether a password exists.

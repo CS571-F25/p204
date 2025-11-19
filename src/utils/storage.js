@@ -4,6 +4,7 @@ const ROOMS_KEY = "termrooms_rooms";
 const MESSAGES_PREFIX = "termrooms_messages_";
 const RECENTS_KEY = "termrooms_recent";
 const INVITES_KEY = "termrooms_invites";
+const SUBSCRIPTIONS_KEY = "termrooms_subscriptions";
 const ROOM_LIMIT = 25;
 const RECENTS_LIMIT = 10;
 const HISTORY_BATCH = 25;
@@ -282,6 +283,7 @@ export function sendInvite({ roomId, recipient, message, sender }) {
     respondedAt: null,
   });
   writeJSON(INVITES_KEY, invites);
+  subscribeToRoom({ username: recipient, displayName: recipient }, roomId);
 }
 
 export function getInvitesForRecipient(recipientKey) {
@@ -315,5 +317,48 @@ export function loadOlderMessages(roomId, currentCount) {
     canLoadMore: nextCount < allMessages.length,
     loadedCount: nextCount,
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Subscriptions                                                              */
+/* -------------------------------------------------------------------------- */
+
+function profileKey({ username, displayName }) {
+  if (username) return `user:${username.toLowerCase()}`;
+  if (displayName) return `guest:${displayName.toLowerCase()}`;
+  return null;
+}
+
+export function subscribeToRoom(profile, roomId) {
+  const key = profileKey(profile);
+  if (!key || !roomId) return;
+  const allSubs = readJSON(SUBSCRIPTIONS_KEY, {});
+  const current = allSubs[key] ?? [];
+  if (!current.includes(roomId)) {
+    allSubs[key] = [...current, roomId];
+    writeJSON(SUBSCRIPTIONS_KEY, allSubs);
+  }
+}
+
+export function getSubscribedRoomIds(profile) {
+  const key = profileKey(profile);
+  if (!key) return [];
+  const allSubs = readJSON(SUBSCRIPTIONS_KEY, {});
+  return allSubs[key] ?? [];
+}
+
+export function getSubscribedRooms(profile) {
+  return getSubscribedRoomIds(profile)
+    .map((id) => getRoom(id))
+    .filter(Boolean);
+}
+
+export function unsubscribeFromRoom(profile, roomId) {
+  const key = profileKey(profile);
+  if (!key) return;
+  const allSubs = readJSON(SUBSCRIPTIONS_KEY, {});
+  const current = allSubs[key] ?? [];
+  allSubs[key] = current.filter((id) => id !== roomId);
+  writeJSON(SUBSCRIPTIONS_KEY, allSubs);
 }
 

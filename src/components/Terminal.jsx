@@ -4,37 +4,27 @@ import TerminalOutput from "./TerminalOutput.jsx";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
-  getRoom,
   deleteRoom,
-  getRecents,
   getMessages,
-  saveMessages,
-  touchRoom,
-  saveRoom,
-  saveRecents,
+  getRecents,
+  getRoom,
   removeParticipant,
+  saveMessages,
+  saveRecents,
+  saveRoom,
   sendInvite,
+  touchRoom,
 } from "../utils/storage.js";
+import { COMMAND_SECTIONS } from "../constants/commandCatalog.js";
 
-const HELP_TEXT = [
-  "Available commands:",
-  " /help                Show this message",
-  " /guide               Open the guide page",
-  " /whoami              Show current identity",
-  " /setname NAME        Change your display name",
-  " /leave               Leave the current room",
-  " /delete ID           Delete a room you own",
-  " /topic [text]        View or set the current room topic",
-  " /invite USER [MSG]   Send an invite to another user",
-  " /kick NAME           Remove a participant (lead/co-lead)",
-  " /ban NAME            Ban a participant (leader only)",
-  " /promote NAME        Make someone a co-leader",
-  " /demote NAME         Return a co-leader to member",
-  " /recent [clear]      List or clear recently opened rooms",
-  " /relay ID [PASS] TXT Send a message into another room",
-  " /clear               Clear terminal output",
-  " Plain text           Send chat to the room",
-];
+const ROOM_ROLES = {
+  LEADER: "leader",
+  CO_LEADER: "coLeader",
+  MEMBER: "member",
+  GUEST: "guest",
+};
+
+const HELP_PADDING = 32;
 
 function Terminal({ onChat, variant = "standalone", onFeedback }) {
   const navigate = useNavigate();
@@ -48,12 +38,12 @@ function Terminal({ onChat, variant = "standalone", onFeedback }) {
     if (!input) return;
 
     if (!input.startsWith("/")) {
-        if (onChat) {
-          onChat(input);
-          onFeedback?.("Message sent");
-        } else {
-          print(`Chat coming soon! For now, try /help.`, "warning");
-        }
+      if (onChat) {
+        onChat(input);
+        onFeedback?.("Message sent");
+      } else {
+        print("Chat coming soon! For now, try /help.", "warning");
+      }
       return;
     }
 
@@ -63,18 +53,18 @@ function Terminal({ onChat, variant = "standalone", onFeedback }) {
 
     switch (command) {
       case "help":
-        HELP_TEXT.forEach((line) => print(line, "info"));
+        printHelp(print);
         break;
       case "guide":
         navigate("/guides");
         print("Opening guide...", "info");
         break;
       case "whoami":
-        print(`You are ${identity.displayName} (${identity.role}).`, "info");
+        print(describeIdentity(identity, currentRoomId, isAuthenticated), "info");
         break;
       case "setname":
         if (!args.length) {
-          print("Usage: /setname Display Name", "warning");
+          print("Usage: /setname <display-name>", "warning");
         } else {
           const newName = args.join(" ");
           setDisplayName(newName);
@@ -96,7 +86,7 @@ function Terminal({ onChat, variant = "standalone", onFeedback }) {
         handleRecentCommand(args, print);
         break;
       case "relay":
-        handleRelayCommand(args, { identity, print });
+        handleRelayCommand(args, { identity, print, currentRoomId });
         break;
       case "invite":
         handleInviteCommand(args, { currentRoomId, identity, print });
@@ -133,7 +123,7 @@ export default Terminal;
 
 function handleDeleteCommand(args, { print, navigate, identity }) {
   if (!args.length) {
-    print("Usage: /delete room-id", "warning");
+    print("Usage: /delete <room-id>", "warning");
     return;
   }
   const roomId = args[0].toLowerCase();
@@ -152,18 +142,16 @@ function handleDeleteCommand(args, { print, navigate, identity }) {
 }
 
 function handleTopicCommand(args, { currentRoomId, identity, print }) {
-  if (!currentRoomId) {
-    print("Join a room before using /topic.", "danger");
-    return;
-  }
-  const room = getRoom(currentRoomId);
-  if (!room) {
-    print("Room not found.", "danger");
+  const room = ensureRoomContext(currentRoomId, print);
+  if (!room) return;
+
+  if (!isLeader(identity, room)) {
+    print("Only the leader can update the topic.", "danger");
     return;
   }
 
   if (!args.length) {
-    if (room.topic && room.topic.trim().length) {
+    if (room.topic?.trim()) {
       print(`Current topic: ${room.topic}`, "info");
     } else {
       print("No topic set for this room.", "info");
@@ -171,22 +159,18 @@ function handleTopicCommand(args, { currentRoomId, identity, print }) {
     return;
   }
 
-  if (identity.username !== room.ownerUsername) {
-    print("Only the room owner can update the topic.", "danger");
-    return;
-  }
-
   if (args.length === 1 && args[0].toLowerCase() === "clear") {
     room.topic = "";
     saveRoom(room);
+    touchRoom(room.id);
     print("Room topic cleared.", "success");
     return;
   }
 
-  const nextTopic = args.join(" ");
-  room.topic = nextTopic;
+  room.topic = args.join(" ");
   saveRoom(room);
-  print(`Room topic updated to "${nextTopic}".`, "success");
+  touchRoom(room.id);
+  print(`Room topic updated to "${room.topic}".`, "success");
 }
 
 function handleRecentCommand(args, print) {
@@ -213,27 +197,34 @@ function handleRecentCommand(args, print) {
   });
 }
 
-function handleRelayCommand(args, { identity, print }) {
+function handleRelayCommand(args, { identity, print, currentRoomId }) {
   if (args.length < 2) {
-    print("Usage: /relay room-id [password] message", "warning");
+    print("Usage: /relay <room-id> [password] <message>", "warning");
+    return;
+  }
+
+  const sourceRoom = ensureRoomContext(currentRoomId, print);
+  if (!sourceRoom) return;
+  if (getRoomRole(identity, sourceRoom) === ROOM_ROLES.GUEST) {
+    print("Join this room before using /relay.", "danger");
     return;
   }
 
   const [targetId, ...rest] = args;
-
-  const room = getRoom(targetId);
-  if (!room) {
-    print("Room not found.", "danger");
+  const targetRoom = getRoom(targetId);
+  if (!targetRoom) {
+    print("Target room not found.", "danger");
     return;
   }
+
   let textParts = rest;
-  if (room.password && identity.username !== room.ownerUsername) {
+  if (targetRoom.password && identity.username !== targetRoom.ownerUsername) {
     if (rest.length < 2) {
-      print("Usage: /relay room-id password message", "warning");
+      print("Usage: /relay <room-id> <password> <message>", "warning");
       return;
     }
     const suppliedPassword = rest[0];
-    if (suppliedPassword !== room.password) {
+    if (suppliedPassword !== targetRoom.password) {
       print("Relay blocked. Password is incorrect.", "danger");
       return;
     }
@@ -246,7 +237,7 @@ function handleRelayCommand(args, { identity, print }) {
     return;
   }
 
-  const history = getMessages(room.id);
+  const history = getMessages(targetRoom.id);
   const relayMessage = {
     id: crypto.randomUUID(),
     user: `${identity.displayName} (relay)`,
@@ -255,20 +246,24 @@ function handleRelayCommand(args, { identity, print }) {
     timestamp: new Date().toISOString(),
   };
 
-  saveMessages(room.id, [...history, relayMessage]);
-  touchRoom(room.id);
-  print(`Message relayed to ${room.name}.`, "success");
+  saveMessages(targetRoom.id, [...history, relayMessage]);
+  touchRoom(targetRoom.id);
+  print(`Message relayed to ${targetRoom.name}.`, "success");
 }
 
 function handleInviteCommand(args, { currentRoomId, identity, print }) {
   if (!args.length) {
-    print("Usage: /invite username [message]", "warning");
+    print("Usage: /invite <username> [message]", "warning");
     return;
   }
   const room = ensureRoomContext(currentRoomId, print);
   if (!room) return;
   if (!canInvite(identity, room)) {
     print("Only leaders or co-leaders can invite.", "danger");
+    return;
+  }
+  if (!identity.username) {
+    print("Sign in before sending invites.", "danger");
     return;
   }
   const [recipient, ...rest] = args;
@@ -285,7 +280,7 @@ function handleInviteCommand(args, { currentRoomId, identity, print }) {
 
 function handleKickCommand(args, { currentRoomId, identity, print }) {
   if (!args.length) {
-    print("Usage: /kick display-name", "warning");
+    print("Usage: /kick <display-name>", "warning");
     return;
   }
   const room = ensureRoomContext(currentRoomId, print);
@@ -300,15 +295,18 @@ function handleKickCommand(args, { currentRoomId, identity, print }) {
     print("Participant not found.", "danger");
     return;
   }
-  const selfRole = getLeadershipRole(identity, room);
-  if (target.role === "Leader") {
+
+  const targetRole = normalizeRoleKey(target.role);
+  const actorRole = getRoomRole(identity, room);
+  if (targetRole === ROOM_ROLES.LEADER) {
     print("You cannot kick the leader.", "danger");
     return;
   }
-  if (target.role === "Co-leader" && selfRole !== "Leader") {
+  if (targetRole === ROOM_ROLES.CO_LEADER && actorRole !== ROOM_ROLES.LEADER) {
     print("Only the leader can kick a co-leader.", "danger");
     return;
   }
+
   removeParticipant(room.id, {
     username: target.username,
     displayName: target.displayName,
@@ -319,22 +317,36 @@ function handleKickCommand(args, { currentRoomId, identity, print }) {
 
 function handleBanCommand(args, { currentRoomId, identity, print }) {
   if (!args.length) {
-    print("Usage: /ban display-name", "warning");
+    print("Usage: /ban <display-name>", "warning");
     return;
   }
   const room = ensureRoomContext(currentRoomId, print);
   if (!room) return;
-  if (getLeadershipRole(identity, room) !== "Leader") {
+  if (!isLeader(identity, room)) {
     print("Only the leader can ban participants.", "danger");
     return;
   }
+
   const targetName = args.join(" ").trim();
+  const target = findParticipant(room, targetName);
+  if (!target) {
+    print("Participant not found.", "danger");
+    return;
+  }
+  if (normalizeRoleKey(target.role) === ROOM_ROLES.LEADER) {
+    print("The leader cannot be banned.", "danger");
+    return;
+  }
+
   room.banned = room.banned ?? [];
-  const normalized = targetName.toLowerCase();
-  if (!room.banned.some((name) => name.toLowerCase() === normalized)) {
+  const exists = room.banned.some((name) => name.toLowerCase() === targetName.toLowerCase());
+  if (!exists) {
     room.banned.push(targetName);
   }
-  removeParticipant(room.id, { username: null, displayName: targetName });
+  removeParticipant(room.id, {
+    username: target.username,
+    displayName: target.displayName,
+  });
   saveRoom(room);
   touchRoom(room.id);
   print(`${targetName} has been banned from this room.`, "success");
@@ -342,26 +354,34 @@ function handleBanCommand(args, { currentRoomId, identity, print }) {
 
 function handlePromoteCommand(args, { currentRoomId, identity, print }) {
   if (!args.length) {
-    print("Usage: /promote display-name", "warning");
+    print("Usage: /promote <display-name>", "warning");
     return;
   }
   const room = ensureRoomContext(currentRoomId, print);
   if (!room) return;
-  if (getLeadershipRole(identity, room) !== "Leader") {
+  if (!isLeader(identity, room)) {
     print("Only the leader can promote participants.", "danger");
     return;
   }
+
   const targetName = args.join(" ").trim();
   const target = findParticipant(room, targetName);
   if (!target) {
     print("Participant not found.", "danger");
     return;
   }
-  if (target.role === "Leader") {
+
+  const targetRole = normalizeRoleKey(target.role);
+  if (targetRole === ROOM_ROLES.LEADER) {
     print("The leader cannot be promoted.", "danger");
     return;
   }
-  target.role = "coLeader";
+  if (targetRole === ROOM_ROLES.CO_LEADER) {
+    print(`${target.displayName} is already a co-leader.`, "info");
+    return;
+  }
+
+  target.role = ROOM_ROLES.CO_LEADER;
   saveRoom(room);
   touchRoom(room.id);
   print(`${target.displayName} is now a co-leader.`, "success");
@@ -369,26 +389,34 @@ function handlePromoteCommand(args, { currentRoomId, identity, print }) {
 
 function handleDemoteCommand(args, { currentRoomId, identity, print }) {
   if (!args.length) {
-    print("Usage: /demote display-name", "warning");
+    print("Usage: /demote <display-name>", "warning");
     return;
   }
   const room = ensureRoomContext(currentRoomId, print);
   if (!room) return;
-  if (getLeadershipRole(identity, room) !== "Leader") {
+  if (!isLeader(identity, room)) {
     print("Only the leader can demote participants.", "danger");
     return;
   }
+
   const targetName = args.join(" ").trim();
   const target = findParticipant(room, targetName);
   if (!target) {
     print("Participant not found.", "danger");
     return;
   }
-  if (target.role === "Leader") {
+
+  const targetRole = normalizeRoleKey(target.role);
+  if (targetRole === ROOM_ROLES.LEADER) {
     print("The leader cannot be demoted.", "danger");
     return;
   }
-  target.role = "member";
+  if (targetRole === ROOM_ROLES.MEMBER) {
+    print(`${target.displayName} is already a member.`, "info");
+    return;
+  }
+
+  target.role = ROOM_ROLES.MEMBER;
   saveRoom(room);
   touchRoom(room.id);
   print(`${target.displayName} is now a member.`, "success");
@@ -407,25 +435,84 @@ function ensureRoomContext(currentRoomId, print) {
   return room;
 }
 
-function getLeadershipRole(identity, room) {
-  if (identity.username && identity.username === room.ownerUsername) {
-    return "Leader";
+function printHelp(print) {
+  COMMAND_SECTIONS.forEach((section, index) => {
+    print(`${section.title} — ${section.scope}`, "info");
+    section.commands.forEach((command) => {
+      print(` ${padSyntax(command.syntax)} ${command.description}`, "light");
+    });
+    if (index < COMMAND_SECTIONS.length - 1) {
+      print("", "light");
+    }
+  });
+}
+
+function padSyntax(syntax) {
+  if (syntax.length >= HELP_PADDING) return syntax;
+  return `${syntax}${" ".repeat(HELP_PADDING - syntax.length)}`;
+}
+
+function describeIdentity(identity, currentRoomId, isAuthenticated) {
+  const accountPart = identity.username
+    ? `Signed in as @${identity.username}`
+    : "Guest session";
+  if (!currentRoomId) {
+    return `${identity.displayName} — ${accountPart}. No active room selected.`;
   }
-  const match = room.participants?.find((p) => {
+  const room = getRoom(currentRoomId);
+  if (!room) {
+    return `${identity.displayName} — ${accountPart}. The active room was deleted.`;
+  }
+  const roleLabel = formatRoleLabel(getRoomRole(identity, room));
+  const authLabel = isAuthenticated ? accountPart : "Guest session";
+  return `${identity.displayName} — ${roleLabel} in ${room.name}. ${authLabel}.`;
+}
+
+function getRoomRole(identity, room) {
+  if (!room) return ROOM_ROLES.GUEST;
+  if (identity.username && identity.username === room.ownerUsername) {
+    return ROOM_ROLES.LEADER;
+  }
+  const participant = room.participants?.find((p) => {
     if (identity.username && p.username) {
       return p.username === identity.username;
     }
     return (p.displayName ?? "").toLowerCase() === identity.displayName.toLowerCase();
   });
-  if (!match) return "Member";
-  if (match.role === "coLeader") return "Co-leader";
-  if (match.role === "leader") return "Leader";
-  return "Member";
+  if (!participant) {
+    return identity.username ? ROOM_ROLES.MEMBER : ROOM_ROLES.GUEST;
+  }
+  return normalizeRoleKey(participant.role);
+}
+
+function normalizeRoleKey(value) {
+  if (!value) return ROOM_ROLES.MEMBER;
+  const slug = String(value).replace(/[^a-z]/gi, "").toLowerCase();
+  if (slug === "leader") return ROOM_ROLES.LEADER;
+  if (slug === "coleader") return ROOM_ROLES.CO_LEADER;
+  return ROOM_ROLES.MEMBER;
+}
+
+function formatRoleLabel(roleKey) {
+  switch (roleKey) {
+    case ROOM_ROLES.LEADER:
+      return "Leader";
+    case ROOM_ROLES.CO_LEADER:
+      return "Co-leader";
+    case ROOM_ROLES.MEMBER:
+      return "Member";
+    default:
+      return "Guest";
+  }
 }
 
 function hasLeadership(identity, room) {
-  const role = getLeadershipRole(identity, room);
-  return role === "Leader" || role === "Co-leader";
+  const role = getRoomRole(identity, room);
+  return role === ROOM_ROLES.LEADER || role === ROOM_ROLES.CO_LEADER;
+}
+
+function isLeader(identity, room) {
+  return getRoomRole(identity, room) === ROOM_ROLES.LEADER;
 }
 
 function canInvite(identity, room) {
@@ -437,5 +524,3 @@ function findParticipant(room, displayName) {
     (p) => (p.displayName ?? "").toLowerCase() === displayName.toLowerCase(),
   );
 }
-
-
