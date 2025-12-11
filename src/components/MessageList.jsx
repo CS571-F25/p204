@@ -27,18 +27,34 @@ function MessageList({ messages, onLoadMore, canLoadMore }) {
   return (
     <div className="message-list p-4">
       {canLoadMore && (
-        <button className="btn btn-outline-light btn-sm w-100 mb-3" onClick={onLoadMore}>
+        <button
+          className="btn btn-outline-light btn-sm w-100 mb-3"
+          onClick={onLoadMore}
+          aria-label="Load 25 earlier messages"
+        >
           Load 25 earlier messages
         </button>
       )}
-      <div className="message-list-scroll" ref={scrollRef} onScroll={handleScroll}>
+      <div
+        className="message-list-scroll"
+        ref={scrollRef}
+        onScroll={handleScroll}
+        role="log"
+        aria-live="polite"
+        aria-label="Chat messages"
+      >
         {messages.length === 0 && <p className="text-muted">No messages yet.</p>}
         {messages.map((message) => (
           <MessageItem key={message.id} message={message} />
         ))}
       </div>
       {!isPinned && (
-        <button type="button" className="btn btn-outline-light btn-sm jump-to-bottom" onClick={jumpToBottom}>
+        <button
+          type="button"
+          className="btn btn-outline-light btn-sm jump-to-bottom"
+          onClick={jumpToBottom}
+          aria-label="Jump to latest messages"
+        >
           Jump to latest
         </button>
       )}

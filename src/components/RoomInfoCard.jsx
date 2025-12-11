@@ -8,7 +8,7 @@ function RoomInfoCard({ room }) {
   }
 
   return (
-    <div className="room-info text-light">
+    <div className="room-info text-light" aria-label="Room information">
       <p className="eyebrow text-muted mb-1">Room details</p>
       <dl className="room-info-list">
         <div>

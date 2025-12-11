@@ -21,7 +21,11 @@ function AuthPage() {
               <>
                 <h1 className="mb-1">{identity.displayName}</h1>
                 <p className="text-light">Username: {identity.username}</p>
-                <button className="btn btn-outline-light btn-sm" onClick={logout}>
+                <button
+                  className="btn btn-outline-light btn-sm"
+                  onClick={logout}
+                  aria-label={`Logout ${identity.displayName}`}
+                >
                   Logout
                 </button>
               </>

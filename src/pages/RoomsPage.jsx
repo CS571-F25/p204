@@ -131,7 +131,7 @@ function RoomsPage() {
         </p>
 
         {alert && (
-          <div className={`alert alert-${alert.variant}`} role="alert">
+          <div className={`alert alert-${alert.variant}`} role="alert" aria-live="polite">
             {alert.message}
           </div>
         )}
@@ -168,13 +168,19 @@ function RoomsPage() {
                       </div>
                     </div>
                     <div className="d-flex gap-2 mt-2 mt-md-0 align-items-center">
-                      <Link to={`/room/${room.id}`} className="icon-btn" title="Open room">
+                      <Link
+                        to={`/room/${room.id}`}
+                        className="icon-btn"
+                        title="Open room"
+                        aria-label={`Open room ${room.name}`}
+                      >
                         <ArrowIcon />
                       </Link>
                       <button
                         type="button"
                         className="icon-btn"
                         title="Edit room"
+                        aria-label={`Edit room ${room.name}`}
                         onClick={() => {
                           setEditingRoomId(room.id);
                           setEditName(room.name);

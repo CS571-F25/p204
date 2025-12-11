@@ -107,16 +107,21 @@ function MailPage() {
         <div className="mail-toolbar d-flex justify-content-between align-items-center mb-4">
           <div>
             <p className="eyebrow text-uppercase mb-1">Mailbox</p>
-            <h1 className="h4 mb-0">Your invites</h1>
+            <h1>Your invites</h1>
           </div>
           <div className="d-flex gap-2">
-            <button type="button" className="btn btn-outline-light" onClick={() => setComposeOpen(true)}>
+            <button
+              type="button"
+              className="btn btn-outline-light"
+              onClick={() => setComposeOpen(true)}
+              aria-label="Compose new invite"
+            >
               Compose
             </button>
           </div>
         </div>
         <div className="mail-card p-4">
-          <p className="text-white mb-4">
+          <p className="text-white mb-4" aria-live="polite">
             Viewing invites addressed to{" "}
             <strong>{isAuthenticated ? identity.username : identity.displayName}</strong>
           </p>
@@ -147,6 +152,7 @@ function MailPage() {
                         type="button"
                         className="btn btn-outline-light btn-sm"
                         onClick={() => handleAccept(invite)}
+                        aria-label={`Accept invite to ${invite.roomName}`}
                       >
                         Accept
                       </button>
@@ -154,6 +160,7 @@ function MailPage() {
                         type="button"
                         className="btn btn-outline-light btn-sm"
                         onClick={() => handleDecline(invite)}
+                        aria-label={`Decline invite to ${invite.roomName}`}
                       >
                         Decline
                       </button>
@@ -173,16 +180,28 @@ function MailPage() {
         </div>
       </div>
       {isComposeOpen && (
-        <div className="mail-compose-overlay" role="dialog" aria-modal="true">
+        <div
+          className="mail-compose-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="compose-dialog-title"
+        >
           <div className="mail-compose-panel">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h3 className="h5 mb-0 text-light">New invite</h3>
-              <button type="button" className="btn-close-white" onClick={resetCompose}>
+              <h2 id="compose-dialog-title" className="h5 mb-0 text-light">
+                New invite
+              </h2>
+              <button
+                type="button"
+                className="btn-close-white"
+                onClick={resetCompose}
+                aria-label="Close compose dialog"
+              >
                 ×
               </button>
             </div>
             {alert && (
-              <div className={`alert alert-${alert.variant}`} role="alert">
+              <div className={`alert alert-${alert.variant}`} role="alert" aria-live="polite">
                 {alert.message}
               </div>
             )}

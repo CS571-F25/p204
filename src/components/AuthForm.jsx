@@ -123,7 +123,7 @@ function AuthForm({ onLogin, onSignup }) {
           </div>
         )}
 
-        <div className={`alert alert-${status.type}`} role="alert">
+        <div className={`alert alert-${status.type}`} role="alert" aria-live="polite">
           {status.message}
         </div>
 

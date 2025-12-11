@@ -14,28 +14,33 @@ function App() {
     <AuthProvider>
       <AppProvider>
         <HashRouter>
+          <a href="#main-content" className="visually-hidden-focusable btn btn-primary position-absolute top-0 start-0 m-2" style={{ zIndex: 9999 }}>
+            Skip to main content
+          </a>
           <div className="app-shell d-flex flex-column min-vh-100 text-light">
             <header className="app-header py-3">
               <div className="container-fluid px-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                 <div className="d-flex flex-column flex-md-row align-items-md-center gap-4">
                   <h1 className="fs-4 mb-0 brand-gradient">TermRooms</h1>
-                  <div className="d-flex gap-3 nav-links">
-                    <NavLink className="nav-link text-light" to="/">
-                      Home
-                    </NavLink>
-                    <NavLink className="nav-link text-light" to="/rooms">
-                      Rooms
-                    </NavLink>
-                    <NavLink className="nav-link text-light" to="/mail">
-                      Mail
-                    </NavLink>
-                    <NavLink className="nav-link text-light" to="/guides">
-                      Guides
-                    </NavLink>
-                    <NavLink className="nav-link text-light" to="/auth">
-                      Account
-                    </NavLink>
-                  </div>
+                  <nav aria-label="Main navigation">
+                    <div className="d-flex gap-3 nav-links">
+                      <NavLink className="nav-link text-light" to="/">
+                        Home
+                      </NavLink>
+                      <NavLink className="nav-link text-light" to="/rooms">
+                        Rooms
+                      </NavLink>
+                      <NavLink className="nav-link text-light" to="/mail">
+                        Mail
+                      </NavLink>
+                      <NavLink className="nav-link text-light" to="/guides">
+                        Guides
+                      </NavLink>
+                      <NavLink className="nav-link text-light" to="/auth">
+                        Account
+                      </NavLink>
+                    </div>
+                  </nav>
                 </div>
                 <div className="d-flex align-items-center gap-3">
                   <IdentityBadge />
@@ -43,7 +48,7 @@ function App() {
               </div>
             </header>
 
-            <main className="flex-grow-1 py-5">
+            <main id="main-content" className="flex-grow-1 py-5">
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/room/:roomId" element={<RoomPage />} />

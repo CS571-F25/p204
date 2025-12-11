@@ -832,6 +832,34 @@ export function formatTimestamp(date) {
 
 ---
 
+## Check-In Submission — Nov 19, 2025
+
+**What’s working**
+- Core navigation + five routed experiences (Home, Rooms, Room, Mail, Guides) are fully responsive and share a consistent “terminal glass” aesthetic.
+- Room creation, passworded joins, rich terminal messaging, and role-scoped commands (`/topic`, `/invite`, `/kick`, `/ban`, `/promote`, `/demote`, `/relay`, etc.) are implemented end to end with persistent localStorage data.
+- Mail inbox + compose modal power the invite workflow; accepting an invite auto-joins the room, records recents, and populates the “Rooms you’re part of” rail via the new subscription registry.
+- Session handling (accounts + guests) now uses `sessionStorage`, preventing cross-tab identity drift; participants are tracked per room with stored roles so the sidebar and commands stay in sync.
+- Spec, Guide page, Help panel, and in-terminal `/help` all read from the same `COMMAND_SECTIONS` source of truth, so documentation and UI can’t diverge.
+
+**What’s still in progress**
+- Persistence is localStorage-only; a Firebase migration plan exists but is deferred until after the check-in.
+- Accessibility polish (focus outlines, reduced-motion tweaks) is partially complete; final WCAG pass plus screen-reader smoke tests are scheduled for the next sprint.
+- Account dashboard (beyond login/logout) needs richer summaries of owned vs. subscribed rooms; wireframes exist but haven’t shipped.
+
+**Blockers / questions**
+- None at the moment; the main open question is whether the course staff expects the invite “Mail” flow to be part of the interactive element demo or if the room terminal alone is sufficient. Feedback appreciated.
+
+**Next sprint focus**
+1. Add lightweight analytics (message counts + active participants) to room cards for quicker scanning.
+2. Tighten accessibility (skip links, aria-live for terminal feedback, keyboard-trap guards on modals).
+3. Explore optional Firebase adapter so real-time sync can be toggled without rewriting UI code.
+
+**Deployed link**: https://cs571-f25.github.io/p0  (updated after every `npm run build`).
+
+
+
+---
+
 ## Success Metrics
 
 ### **Minimum Requirements Met**

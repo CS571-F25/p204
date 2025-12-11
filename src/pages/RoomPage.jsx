@@ -139,7 +139,11 @@ function RoomPage() {
         <header className="room-hero glass-panel mb-4">
           <h1 className="room-title mb-0">{room?.name ?? roomId}</h1>
         </header>
-        {error && <p className="text-danger">{error}</p>}
+        {error && (
+          <p className="text-danger" role="alert" aria-live="assertive">
+            {error}
+          </p>
+        )}
         <div className="room-layout">
           <div className="room-console">
             <div className="console-log">
@@ -152,11 +156,15 @@ function RoomPage() {
             <div className="console-terminal">
               <Terminal onChat={handleSendMessage} variant="embedded" onFeedback={setInputFeedback} />
             </div>
-            {inputFeedback && <p className="feedback-line text-success small">{inputFeedback}</p>}
+            {inputFeedback && (
+              <p className="feedback-line text-success small" aria-live="polite" role="status">
+                {inputFeedback}
+              </p>
+            )}
           </div>
-          <aside className="room-sidebar">
+          <aside className="room-sidebar" aria-label="Room sidebar">
             <RoomInfoCard room={room} />
-            <div className="divider" />
+            <div className="divider" aria-hidden="true" />
             <UserList users={participants} />
           </aside>
         </div>
